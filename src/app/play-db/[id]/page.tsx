@@ -110,6 +110,8 @@ export default function PlayDbPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [nextLoading, setNextLoading] = useState(false);
+  const [completionBanner, setCompletionBanner] = useState<{ type: "info" | "error"; text: string } | null>(null);
   const gameTimerIdRef = useRef<number | null>(null);
   const gameStartRef = useRef<number>(0);
   const [started, setStarted] = useState<boolean>(false);
@@ -220,25 +222,41 @@ export default function PlayDbPage() {
 
   async function goToNextImage() {
     try {
-      const { data, error } = await supabase
-        .from('images')
-        .select('id')
-        .neq('id', imageId)         // avoid reloading the same image
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.warn('next image fetch failed', error);
-        router.push('/feed'); // fallback
-        return;
+      setCompletionBanner(null);
+      setNextLoading(true);
+      const res = await fetch("/api/next-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          current_image_id: imageId, 
+          guest_id: guestId 
+        }),
+      });
+      
+      const json = await res.json().catch(() => ({}));
+      
+      if (!res.ok) {
+        throw new Error(json?.details || json?.error || `HTTP ${res.status}`);
       }
-
-      const nextId = data?.[0]?.id;
-      if (nextId) router.push(`/play-db/${nextId}`);
-      else router.push('/feed');
-    } catch (e) {
+      
+      const nextId = json.next_image_id;
+      if (nextId) {
+        router.push(`/play-db/${nextId}`);
+      } else {
+        // No unplayed images - show completion message
+        setCompletionBanner({
+          type: "info",
+          text: "You've completed them all! Come back later for more or upload your own!",
+        });
+      }
+    } catch (e: any) {
       console.warn('next image exception', e);
-      router.push('/feed');
+      setCompletionBanner({ 
+        type: "error", 
+        text: String(e?.message ?? e) 
+      });
+    } finally {
+      setNextLoading(false);
     }
   }
 
@@ -771,14 +789,24 @@ export default function PlayDbPage() {
           >
             Play Again
           </button>
-          <button className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
-            Next Level
+          <button 
+            className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50" 
+            onClick={goToNextImage}
+            disabled={nextLoading}
+          >
+            {nextLoading ? "Finding next…" : "Next Level"}
           </button>
         </div>
 
         {saveError && (
           <div className="text-red-600 text-sm">
             {saveError}
+          </div>
+        )}
+
+        {completionBanner && (
+          <div className={`mt-3 text-sm ${completionBanner.type === "error" ? "text-red-400" : "text-blue-300"}`}>
+            {completionBanner.text}
           </div>
         )}
       </div>

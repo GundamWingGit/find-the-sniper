@@ -245,44 +245,53 @@ export default function FeedPage() {
   useEffect(() => { loadFeed(sort); }, [sort]);
 
   return (
-    <div className="py-8">
+    <div className="relative min-h-[80vh] py-8">
+      {/* Gradient Background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+             style={{
+               background: "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)"
+             }}
+        />
+      </div>
+
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Community Feed</h1>
+        <h1 className="text-white text-3xl md:text-4xl font-semibold mb-6">Community Feed</h1>
 
         {/* Sort control */}
-        <div className="mb-6 flex items-center gap-2">
-          <span className="text-sm text-gray-600">Sort:</span>
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
-            <button
-              onClick={() => setSort('new')}
-              className={`px-3 py-1 rounded-md text-sm ${sort==='new' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-              aria-pressed={sort==='new'}
-            >
-              Most Recent
-            </button>
-            <button
-              onClick={() => setSort('mostLiked')}
-              className={`px-3 py-1 rounded-md text-sm ${sort==='mostLiked' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-              aria-pressed={sort==='mostLiked'}
-            >
-              Most Liked
-            </button>
-            <button
-              onClick={() => setSort('hot')}
-              className={`px-3 py-1 rounded-md text-sm ${sort==='hot' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-              aria-pressed={sort==='hot'}
-            >
-              Hot
-            </button>
+        <div className="mb-6">
+          <div className="mt-2 inline-flex items-center rounded-full bg-white/10 p-1 backdrop-blur">
+            {[
+              { key: "new", label: "Most Recent" },
+              { key: "mostLiked", label: "Most Liked" },
+              { key: "hot", label: "Hot" },
+            ].map(opt => {
+              const active = sort === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  onClick={() => setSort(opt.key as typeof sort)}
+                  className={
+                    "px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-[0.95rem] rounded-full transition " +
+                    (active
+                      ? "bg-white text-black shadow"
+                      : "text-white/80 hover:text-white hover:bg-white/20")
+                  }
+                  type="button"
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {loading && (
-          <div className="text-gray-600">Loading images…</div>
+          <div className="text-white/60">Loading images…</div>
         )}
 
         {!loading && images.length === 0 && (
-          <div className="text-gray-600">No images yet. <Link href="/upload" className="text-blue-600 underline">Upload one</Link> to get started.</div>
+          <div className="text-white/60">No images yet. <Link href="/upload" className="text-blue-400 underline hover:text-blue-300 transition">Upload one</Link> to get started.</div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -291,13 +300,14 @@ export default function FeedPage() {
             const likes = likeMap.get(img.id) ?? 0;
             const src = resolveImageSrc(img);
             return (
-              <div key={img.id} className="relative bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center">
+              <div key={img.id} className="rounded-2xl bg-black/70 shadow-xl p-4 relative overflow-hidden" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(29,78,216,0.4), rgba(147,51,234,0.3), rgba(249,115,22,0.2))'}}>
+                <div className="relative z-10">
+                <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative overflow-hidden rounded-lg">
                   {src ? (
                     <img
                       src={src}
                       alt={img.title ?? ''}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover blur-sm"
                       loading="lazy"
                     />
                   ) : (
@@ -309,27 +319,26 @@ export default function FeedPage() {
 
                 {/* like badge (non-interactive) */}
                 <div className="absolute bottom-2 right-2 rounded-full bg-black/60 text-white text-xs px-2 py-1 flex items-center gap-1">
-                  <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">
+                                      <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5">
                     <path d="M12.1 8.64l-.1.1-.11-.1C10.14 6.84 7.1 7.5 6.5 9.86c-.46 1.9.78 3.6 2.2 4.9 1.3 1.2 2.8 2.2 3.4 2.6.6-.4 2.1-1.4 3.4-2.6 1.42-1.3 2.66-3 2.2-4.9-.6-2.36-3.64-3.02-5.6-1.22z" fill="currentColor"/>
                   </svg>
                   <span>{likes}</span>
                 </div>
 
-                <div className="p-4 space-y-3">
+                <div className="space-y-3">
                   <div>
-                    <div className="font-medium text-gray-900">{label(img)}</div>
+                    <div className="font-medium text-white">{label(img)}</div>
                     {img.location?.trim() && (
-                      <div className="text-sm text-gray-500 mt-1">{img.location.trim()}</div>
+                      <div className="text-sm text-gray-300 mt-1">{img.location.trim()}</div>
                     )}
                   </div>
                   <div className="flex gap-2">
                     <Link
                       href={`/play-db/${img.id}`}
-                      className={`px-3 py-2 rounded text-white text-sm ${
-                        playable
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-gray-400 cursor-not-allowed'
-                      }`}
+                      className={playable ? 
+                        "inline-flex items-center justify-center rounded-full px-3 md:px-4 py-1.5 md:py-2 text-sm font-medium bg-white/10 text-white/90 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition shadow-sm hover:shadow backdrop-blur" :
+                        "inline-flex items-center justify-center rounded-full px-3 md:px-4 py-1.5 md:py-2 text-sm font-medium bg-gray-600 cursor-not-allowed opacity-50 text-white"
+                      }
                       aria-disabled={!playable}
                       onClick={(e) => { if (!playable) e.preventDefault(); }}
                     >
@@ -337,6 +346,7 @@ export default function FeedPage() {
                     </Link>
                     <SetTargetButton imageId={img.id} />
                   </div>
+                </div>
                 </div>
               </div>
             );

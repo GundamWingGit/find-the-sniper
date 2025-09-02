@@ -7,7 +7,7 @@ type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 
 const shortId = (id: string) => id.length > 12 ? id.slice(0, 8) + '…' : id;
 
-const inputClassName = "block w-full px-3 py-2 text-gray-900 placeholder:text-gray-500 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50";
+const inputClassName = "block w-full px-3 py-2 rounded-lg bg-white/5 text-white placeholder-white/50 border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 disabled:opacity-50";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -135,25 +135,36 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+    <div className="relative min-h-[80vh] py-8">
+      {/* gradient layer behind upload form */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)",
+          }}
+        />
+      </div>
+
+      <h1 className="text-3xl md:text-4xl font-semibold text-white text-center mb-6">
         Upload Image
       </h1>
       
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+      <div className="max-w-3xl mx-auto">
+        <div className="rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6 md:p-8">
           {state === 'success' ? (
             <div className="space-y-4">
               <div className="text-center">
                 <div className="text-4xl mb-2">✅</div>
-                <h2 className="text-xl font-semibold text-green-600 mb-4">
+                <h2 className="text-xl font-semibold text-green-400 mb-4">
                   Upload Successful!
                 </h2>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white mb-1">
                     Public URL:
                   </label>
                   <div className="flex gap-2">
@@ -161,11 +172,11 @@ export default function UploadPage() {
                       type="text"
                       value={publicUrl}
                       readOnly
-                      className="flex-1 px-3 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-md text-sm"
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/5 text-white border border-white/15 text-sm"
                     />
                     <button
                       onClick={copyToClipboard}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
                     >
                       Copy
                     </button>
@@ -173,31 +184,31 @@ export default function UploadPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white mb-2">
                     Uploaded Image:
                   </label>
                   <img
                     src={publicUrl}
                     alt="Uploaded image"
-                    className="w-full h-auto rounded-lg border border-gray-200"
+                    className="w-full h-auto rounded-lg border border-white/20"
                   />
                 </div>
 
                 {imageId && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
                     <div className="text-sm">
-                      <span className="font-medium text-green-700">Saved to DB</span>
+                      <span className="font-medium text-green-400">Saved to DB</span>
                       {title.trim() && (
-                        <div className="text-green-600 mt-1 font-medium">{title.trim()}</div>
+                        <div className="text-green-300 mt-1 font-medium">{title.trim()}</div>
                       )}
                       {location.trim() && (
-                        <div className="text-green-500 text-xs">{location.trim()}</div>
+                        <div className="text-green-200 text-xs">{location.trim()}</div>
                       )}
                       {description.trim() && (
-                        <div className="text-gray-500 text-xs mt-1">Find: {description.trim()}</div>
+                        <div className="text-white/70 text-xs mt-1">Find: {description.trim()}</div>
                       )}
                       {!title.trim() && (
-                        <span className="text-green-600 ml-2">Image ID: {shortId(String(imageId))}</span>
+                        <span className="text-green-300 ml-2">Image ID: {shortId(String(imageId))}</span>
                       )}
                     </div>
                   </div>
@@ -208,14 +219,14 @@ export default function UploadPage() {
                 {imageId && (
                   <a
                     href={`/set-target/${imageId}`}
-                    className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center font-medium"
+                    className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
                   >
                     Set Target Now
                   </a>
                 )}
                 <button
                   onClick={reset}
-                  className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  className="w-full inline-flex items-center justify-center rounded-full px-4 py-2 text-base font-semibold bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition"
                 >
                   Upload Another
                 </button>
@@ -224,7 +235,7 @@ export default function UploadPage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Title (optional)
                 </label>
                 <input
@@ -239,7 +250,7 @@ export default function UploadPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Location (optional)
                 </label>
                 <input
@@ -254,7 +265,7 @@ export default function UploadPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Description (optional)
                 </label>
                 <textarea
@@ -266,45 +277,51 @@ export default function UploadPage() {
                   disabled={state === 'uploading'}
                   className={`${inputClassName} resize-vertical`}
                 />
-                <div className="text-xs text-gray-500 mt-1">{description.length}/280</div>
+                <div className="text-white/60 text-xs mt-1">{description.length}/280</div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Select Image (max 5MB)
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  disabled={state === 'uploading'}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-                />
+                <div className="flex items-center gap-3">
+                  <label className="inline-flex items-center rounded-full bg-white/10 px-3 py-2 text-sm text-white/90 hover:bg-white/20 cursor-pointer transition">
+                    Choose File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      disabled={state === 'uploading'}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-white/70 text-sm">{file ? file.name : 'No file selected'}</span>
+                </div>
               </div>
 
               {preview && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white mb-2">
                     Preview:
                   </label>
                   <img
                     src={preview}
                     alt="Preview"
-                    className="w-full h-auto rounded-lg border border-gray-200 max-h-64 object-contain"
+                    className="w-full h-auto rounded-lg border border-white/20 max-h-64 object-contain"
                   />
                 </div>
               )}
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className="p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
+                  <p className="text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
               <button
                 onClick={handleUpload}
                 disabled={!file || state === 'uploading'}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm hover:shadow backdrop-blur"
               >
                 {state === 'uploading' ? 'Uploading...' : 'Upload Image'}
               </button>

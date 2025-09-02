@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { ScoreRow } from '@/lib/types';
 
+const SHOW_TOP_IMAGES = false;
+
 const shortId = (id: string) => id.length > 12 ? id.slice(0, 8) + '…' : id;
 const label = (img: { id: string; title?: string | null }) => img.title?.trim() || shortId(img.id);
 
@@ -176,136 +178,125 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div className="py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Leaderboard</h1>
+    <div className="relative min-h-[80vh] py-8">
+      {/* gradient layer behind leaderboard content */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)",
+          }}
+        />
+      </div>
+
+      <h1 className="text-3xl md:text-4xl font-semibold text-white mb-6">Leaderboard</h1>
 
       {/* Tab Navigation */}
       <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => handleTabChange('fastest')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'fastest'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Fastest Times
-            </button>
-            <button
-              onClick={() => handleTabChange('mostGames')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'mostGames'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Most Games
-            </button>
-            <button
-              onClick={() => handleTabChange('topPlayers')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'topPlayers'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Top Players
-            </button>
-            <button
-              onClick={() => handleTabChange('topImages')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'topImages'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Top Images
-            </button>
-
-          </nav>
+        <div className="inline-flex items-center rounded-full bg-white/10 p-1 backdrop-blur">
+          {[
+            { key: 'fastest', label: 'Fastest Times' },
+            { key: 'mostGames', label: 'Most Games' },
+            { key: 'topPlayers', label: 'Top Players' },
+            ...(SHOW_TOP_IMAGES ? [{ key: 'topImages', label: 'Top Images' }] : []),
+          ].map(t => {
+            const active = activeTab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => handleTabChange(t.key as TabType)}
+                className={
+                  "px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-[0.95rem] rounded-full transition " +
+                  (active
+                    ? "bg-white text-black shadow"
+                    : "text-white/80 hover:text-white hover:bg-white/20")
+                }
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {loading && <div className="text-gray-600">Loading leaderboard…</div>}
+      {loading && <div className="text-white/60">Loading leaderboard…</div>}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6">
+        <div className="bg-red-500/20 border border-red-400/30 text-red-400 rounded-lg p-4 mb-6">
           {error}
         </div>
       )}
 
       {!loading && !error && rows.length === 0 && players.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-white/60">
           {activeTab === 'mostGames' ? 'No players yet.' : 
            activeTab === 'topPlayers' ? 'No players yet.' : 'No scores yet.'}
         </div>
       )}
 
       {!loading && !error && (rows.length > 0 || players.length > 0) && (
-        <div className="overflow-x-auto">
-          {activeTab === 'fastest' && (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Image</th>
-                  <th className="py-2 pr-3">Player</th>
-                  <th className="py-2 pr-3">Time</th>
-                  <th className="py-2 pr-3">When</th>
-                  <th className="py-2 pr-3">Play</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
+        <div className="rounded-2xl bg-black/70 border border-white/10 shadow-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            {activeTab === 'fastest' && (
+              <table className="min-w-full text-sm">
+                <thead className="bg-white/5 md:sticky md:top-0">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">Image</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">Time</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">When</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90">Play</th>
+                  </tr>
+                </thead>
+                <tbody>
                 {rows.map((r, idx) => (
-                  <tr key={r.id} className="align-middle">
-                    <td className="py-2 pr-3 text-gray-500">{idx + 1}</td>
-                    <td className="py-2 pr-3">
+                  <tr key={r.id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
+                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
+                    <td className="px-4 py-3">
                       {r.image?.public_url ? (
                         <div className="flex items-center gap-3">
                           <Link href={`/leaderboard/${r.image_id}`}>
                             <img
                               src={r.image.public_url}
                               alt="thumb"
-                              width={80}
-                              height={60}
-                              className="rounded border border-gray-200 object-cover hover:opacity-80 cursor-pointer"
-                              style={{ width: 80, height: 60 }}
+                              className="h-14 w-20 object-cover rounded-md hover:opacity-80 cursor-pointer"
                             />
                           </Link>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{label(r.image)}</div>
+                            <div className="text-sm font-medium text-white">{label(r.image)}</div>
                             {r.image.location?.trim() && (
-                              <div className="text-xs text-gray-500">{r.image.location.trim()}</div>
+                              <div className="text-xs text-white/60">{r.image.location.trim()}</div>
                             )}
-                            <Link href={`/leaderboard/${r.image_id}`} className="text-blue-400 underline text-xs">Scores</Link>
+                            <Link href={`/leaderboard/${r.image_id}`} className="text-xs text-white/60 hover:text-white">Scores</Link>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-3">
-                          <div className="w-20 h-15 bg-gray-100 border border-gray-200 rounded flex items-center justify-center text-xs text-gray-400">
+                          <div className="w-20 h-14 bg-white/5 border border-white/20 rounded-md flex items-center justify-center text-xs text-white/40">
                             (no image)
                           </div>
                         </div>
                       )}
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="px-4 py-3 text-white/80">
                       {r.player_name || "Anonymous"}
                     </td>
-                    <td className="py-2 pr-3 font-medium">{formatMs(r.ms)}</td>
-                    <td className="py-2 pr-3 text-gray-500">
+                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{formatMs(r.ms)}</td>
+                    <td className="px-4 py-3 text-white/60">
                       {new Date(r.created_at).toLocaleString()}
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="px-4 py-3">
                       {r.image_id ? (
                         <Link
                           href={`/play-db/${r.image_id}`}
-                          className="inline-block bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700"
+                          className="inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium bg-white/10 text-white/90 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition shadow-sm hover:shadow backdrop-blur"
                         >
                           Play
                         </Link>
                       ) : (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-white/40">—</span>
                       )}
                     </td>
                   </tr>
@@ -316,23 +307,23 @@ export default function LeaderboardPage() {
           
           {activeTab === 'mostGames' && (
             <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Player</th>
-                  <th className="py-2 pr-3">Games</th>
-                  <th className="py-2 pr-3">Elo</th>
+              <thead className="bg-white/5 md:sticky md:top-0">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Games</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Elo</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {players.map((player, idx) => (
-                  <tr key={player.guest_id} className="align-middle">
-                    <td className="py-2 pr-3 text-gray-500">{idx + 1}</td>
-                    <td className="py-2 pr-3">
+                  <tr key={player.guest_id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
+                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
+                    <td className="px-4 py-3 text-white/80">
                       {player.name || "Guest"}
                     </td>
-                    <td className="py-2 pr-3 font-medium">{player.games_played}</td>
-                    <td className="py-2 pr-3 text-gray-500">{player.rating}</td>
+                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{player.games_played}</td>
+                    <td className="px-4 py-3 text-white/60 tabular-nums">{player.rating}</td>
                   </tr>
                 ))}
               </tbody>
@@ -341,47 +332,47 @@ export default function LeaderboardPage() {
           
           {activeTab === 'topPlayers' && (
             <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Player</th>
-                  <th className="py-2 pr-3">Rating</th>
-                  <th className="py-2 pr-3">Games</th>
+              <thead className="bg-white/5 md:sticky md:top-0">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Rating</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Games</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {players.map((player, idx) => (
-                  <tr key={player.guest_id} className="align-middle">
-                    <td className="py-2 pr-3 text-gray-500">{idx + 1}</td>
-                    <td className="py-2 pr-3">
+                  <tr key={player.guest_id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
+                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
+                    <td className="px-4 py-3 text-white/80">
                       {player.name || "Guest"}
                     </td>
-                    <td className="py-2 pr-3 font-medium">{player.rating}</td>
-                    <td className="py-2 pr-3 text-gray-500">{player.games_played}</td>
+                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{player.rating}</td>
+                    <td className="px-4 py-3 text-white/60 tabular-nums">{player.games_played}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
           
-          {activeTab === 'topImages' && (
+          {SHOW_TOP_IMAGES && activeTab === 'topImages' && (
             <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Image</th>
-                  <th className="py-2 pr-3">Title</th>
-                  <th className="py-2 pr-3">Likes</th>
+              <thead className="bg-white/5 md:sticky md:top-0">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Image</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Title</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90">Likes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {topImages.map((item, idx) => (
-                  <tr key={item.image_id} className="align-middle hover:bg-gray-50">
-                    <td className="py-2 pr-3 text-gray-500">{idx + 1}</td>
-                    <td className="py-2 pr-3">
+                  <tr key={item.image_id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
+                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
+                    <td className="px-4 py-3">
                       <Link 
                         href={`/play-db/${item.image_id}`}
-                        className="block w-16 h-12 bg-gray-100 rounded overflow-hidden hover:opacity-80 transition-opacity"
+                        className="block h-14 w-20 bg-white/5 rounded-md overflow-hidden hover:opacity-80 transition-opacity"
                       >
                         {item.image.public_url && (
                           <img 
@@ -392,20 +383,20 @@ export default function LeaderboardPage() {
                         )}
                       </Link>
                     </td>
-                    <td className="py-2 pr-3">
+                    <td className="px-4 py-3">
                       <Link 
                         href={`/play-db/${item.image_id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                        className="text-white hover:text-white/80 hover:underline"
                       >
                         {label(item.image)}
                       </Link>
                       {item.image.location?.trim() && (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-white/60 mt-1">
                           {item.image.location.trim()}
                         </div>
                       )}
                     </td>
-                    <td className="py-2 pr-3 font-medium text-red-500">
+                    <td className="px-4 py-3 font-medium text-red-400">
                       <div className="flex items-center gap-1">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -418,7 +409,7 @@ export default function LeaderboardPage() {
               </tbody>
             </table>
           )}
-
+          </div>
         </div>
       )}
     </div>

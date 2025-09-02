@@ -4,6 +4,7 @@ import { useRef, useState, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Timer, { TimerRef } from '../../../components/Timer';
+import { getOrCreateLocalGuestId } from '@/lib/identity';
 
 interface PlayPageProps {
   params: Promise<{ id: string }>;
@@ -22,8 +23,11 @@ export default function PlayPage({ params }: PlayPageProps) {
   const [winTime, setWinTime] = useState<number>(0);
   const [clickDots, setClickDots] = useState<ClickDot[]>([]);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState<string>('');
   const timerRef = useRef<TimerRef>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  
+  const guestId = getOrCreateLocalGuestId();
 
   const demoImages = ["/images/demo.jpeg", "/images/demo2.jpeg", "/images/demo3.jpeg"];
 
@@ -73,16 +77,66 @@ export default function PlayPage({ params }: PlayPageProps) {
     setShowResult(false);
     setWinTime(0);
     setClickDots([]);
+    setCompletionMessage('');
     timerRef.current?.resetAndStart();
   };
 
-  const goToNextLevel = () => {
-    const nextId = parseInt(id) + 1;
-    router.push(`/play/${nextId}`);
+  const goToNextLevel = async () => {
+    try {
+      const res = await fetch("/api/next-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          current_image_id: id, 
+          guest_id: guestId 
+        }),
+      });
+      
+      const json = await res.json().catch(() => ({}));
+      
+      if (!res.ok) {
+        console.warn('next image API failed', json?.details || json?.error || `HTTP ${res.status}`);
+        const nextId = parseInt(id) + 1; // fallback to old behavior
+        router.push(`/play/${nextId}`);
+        return;
+      }
+      
+      const nextId = json.next_image_id;
+      if (nextId) {
+        router.push(`/play/${nextId}`);
+      } else {
+        // No unplayed images - show completion message
+        setCompletionMessage("You've completed them all! Come back later for more or upload your own.");
+      }
+    } catch (e: any) {
+      console.warn('next image exception', e);
+      const nextId = parseInt(id) + 1; // fallback to old behavior
+      router.push(`/play/${nextId}`);
+    }
   };
 
   // Results panel component
   function ResultPanel() {
+    if (completionMessage) {
+      return (
+        <div className="text-center">
+          <div className="text-4xl mb-4">🎉</div>
+          <h2 className="text-2xl font-bold text-blue-600 mb-2">
+            Congratulations!
+          </h2>
+          <p className="text-gray-700 mb-4">
+            {completionMessage}
+          </p>
+          <button
+            onClick={() => router.push('/feed')}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Browse Feed
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="text-center">
         <div className="text-4xl mb-4">🎯</div>
