@@ -87,7 +87,7 @@ export default function SetTargetPage() {
     const res = await fetch('/api/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_id: imageId, cx, cy, radius }),
+      body: JSON.stringify({ imageId, cx, cy, radius }),
     });
     if (!res.ok) {
       const msg = await res.json().catch(() => ({}));
