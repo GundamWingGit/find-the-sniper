@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { isAdminId } from '@/lib/admin';
+import { isAdminId } from '@/lib/adminServer';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 
 export async function POST(req: Request) {
