@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Prevent horizontal overflow */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Make media responsive by default */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Safer long text wrapping to avoid pushing layout wide */
+*:where(p, h1, h2, h3, h4, h5, h6, a, span, div) {
+  overflow-wrap: anywhere;
+}
+
+/* Optional: ensure all elements size within the box */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
