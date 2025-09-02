@@ -786,141 +786,139 @@ export default function PlayDbPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <header className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-100">Play (DB)</h1>
-          {started && (
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <span>Time: {((status === "found" ? winMs : elapsedMs) / 1000).toFixed(2)}s</span>
-              <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-                Misses: {misses}/10
-              </span>
-            </div>
-          )}
+    <main className="min-h-screen p-4">
+      <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
+        <header className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-gray-100">Play (DB)</h1>
+            {started && (
+              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+                <span className="shrink-0">Time: {((status === "found" ? winMs : elapsedMs) / 1000).toFixed(2)}s</span>
+                <span className="shrink-0 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                  Misses: {misses}/10
+                </span>
+              </div>
+            )}
+          </div>
+
+          <LikeButton
+            imageId={imageId!}
+            guestId={playerId}
+            initialLiked={liked}
+            initialCount={likeCount}
+            className="shrink-0 text-white hover:text-red-400"
+            onChanged={(nextLiked, nextCount) => {
+              setLiked(nextLiked);
+              setLikeCount(nextCount);
+              console.debug('like.changed', { nextLiked, nextCount });
+            }}
+          />
+        </header>
+      
+        <p className="text-gray-300">Find the hidden spot in this image. Click when you spot it!</p>
+        {img.description?.trim() && (
+          <div className="text-sm text-gray-400">Find: {img.description.trim()}</div>
+        )}
+
+        <div className="w-full overflow-hidden rounded-xl bg-neutral-900">
+          <div className="relative w-full select-none">
+            {/* Placeholder before start or after give up */}
+            {(!imgSrc || status === "gaveUp") && (
+              <div className="w-full aspect-[4/3] rounded-lg border border-gray-700 bg-gray-800 flex items-center justify-center">
+                <div className="text-gray-500 text-center">
+                  <div className="text-4xl mb-2">🖼️</div>
+                  <div className="text-sm">Image will load when you start</div>
+                </div>
+              </div>
+            )}
+
+            {/* Actual image (only when playing or won) */}
+            {imgSrc && status !== "gaveUp" && (
+              <div className={isRoundOverRef.current || showResult ? 'pointer-events-none' : ''}>
+                <img
+                  ref={imgRef}
+                  src={imgSrc}
+                  alt="play"
+                  className={`w-full h-auto block object-contain ${
+                    started && status === "ready" ? "cursor-crosshair" : "cursor-default"
+                  } ${showResult ? 'opacity-20 pointer-events-none select-none' : ''}`}
+                  onLoad={handleImageLoad}
+                  onClick={handleClick}
+                />
+              </div>
+            )}
+
+            {/* Pre-game start overlay */}
+            {!started && status === "ready" && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+                <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 max-w-md mx-4 text-center">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">{imageTitle}</h2>
+                  {img.location?.trim() && (
+                    <p className="text-sm text-gray-600 mb-3">{img.location.trim()}</p>
+                  )}
+                  {img.description?.trim() && (
+                    <p className="text-sm text-gray-700 mb-4 italic">Find: {img.description.trim()}</p>
+                  )}
+                  <button
+                    onClick={handleStart}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium text-lg"
+                  >
+                    Start
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <LikeButton
-          imageId={imageId!}
-          guestId={playerId}
-          initialLiked={liked}
-          initialCount={likeCount}
-          className="shrink-0 text-white hover:text-red-400"
-          onChanged={(nextLiked, nextCount) => {
-            setLiked(nextLiked);
-            setLikeCount(nextCount);
-            console.debug('like.changed', { nextLiked, nextCount });
-          }}
-        />
-      </header>
-      
-      <p className="text-gray-300 mb-4">Find the hidden spot in this image. Click when you spot it!</p>
-      {img.description?.trim() && (
-        <div className="text-sm text-gray-400 mb-2">Find: {img.description.trim()}</div>
-      )}
-
-      <div className="relative inline-block select-none">
-        {/* Placeholder before start or after give up */}
-        {(!imgSrc || status === "gaveUp") && (
-          <div 
-            className="rounded-lg border border-gray-700 bg-gray-800 flex items-center justify-center"
-            style={{
-              width: img?.width ? Math.min(img.width, 800) : 600,
-              height: img?.height ? Math.min(img.height * (Math.min(img.width || 800, 800) / (img.width || 800)), 600) : 400
-            }}
-          >
-            <div className="text-gray-500 text-center">
-              <div className="text-4xl mb-2">🖼️</div>
-              <div className="text-sm">Image will load when you start</div>
-            </div>
+        {/* Give up button while playing */}
+        {started && status === "ready" && !isRoundOver && (
+          <div className="text-center">
+            <button
+              onClick={handleGiveUp}
+              className="w-full sm:w-auto px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Give Up
+            </button>
           </div>
         )}
 
-        {/* Actual image (only when playing or won) */}
-        {imgSrc && status !== "gaveUp" && (
-          <div className={isRoundOverRef.current || showResult ? 'pointer-events-none' : ''}>
-            <img
-              ref={imgRef}
-              src={imgSrc}
-              alt="play"
-              className={`max-w-full rounded-lg border border-gray-700 ${
-                started && status === "ready" ? "cursor-crosshair" : "cursor-default"
-              } ${showResult ? 'opacity-20 pointer-events-none select-none' : ''}`}
-              onLoad={handleImageLoad}
-              onClick={handleClick}
-            />
-          </div>
-        )}
-
-        {/* Pre-game start overlay */}
-        {!started && status === "ready" && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 max-w-md mx-4 text-center">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{imageTitle}</h2>
-              {img.location?.trim() && (
-                <p className="text-sm text-gray-600 mb-3">{img.location.trim()}</p>
-              )}
-              {img.description?.trim() && (
-                <p className="text-sm text-gray-700 mb-4 italic">Find: {img.description.trim()}</p>
-              )}
+        {/* Give up end panel */}
+        {status === "gaveUp" && (
+          <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 text-center">
+            <div className="text-2xl mb-2">😔</div>
+            <div className="text-gray-700 mb-4">You gave up</div>
+            
+            <div className="flex flex-wrap gap-3 justify-center">
               <button
-                onClick={handleStart}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium text-lg"
+                className="w-full sm:w-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                onClick={resetRound}
               >
-                Start
+                Play Again
+              </button>
+              <a className="w-full sm:w-auto px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700" href="/feed">
+                Back to Feed
+              </a>
+              <button className="w-full sm:w-auto px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
+                Next Level
               </button>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Give up button while playing */}
-      {started && status === "ready" && !isRoundOver && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleGiveUp}
-            className="px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          >
-            Give Up
-          </button>
-        </div>
-      )}
-
-      {/* Give up end panel */}
-      {status === "gaveUp" && (
-        <div className="mt-6 p-4 rounded-lg bg-gray-50 border border-gray-200 text-center">
-          <div className="text-2xl mb-2">😔</div>
-          <div className="text-gray-700 mb-4">You gave up</div>
-          
-          <div className="flex gap-3 justify-center">
-            <button
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-              onClick={resetRound}
+        {/* Results overlay */}
+        {showResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div 
+              className="w-full max-w-[560px] rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-4 sm:p-6"
+              aria-modal="true"
+              role="dialog"
             >
-              Play Again
-            </button>
-            <a className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700" href="/feed">
-              Back to Feed
-            </a>
-            <button className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
-              Next Level
-            </button>
+              <ResultPanel />
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Results overlay */}
-      {showResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div 
-            className="w-full max-w-2xl rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-6"
-            aria-modal="true"
-            role="dialog"
-          >
-            <ResultPanel />
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </main>
   );
 }

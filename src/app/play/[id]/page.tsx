@@ -115,89 +115,86 @@ export default function PlayPage({ params }: PlayPageProps) {
   }
 
   return (
-    <div className="py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Play Level {id}
-        </h1>
-        <p className="text-gray-600 mb-4">
-          Find the hidden sniper in this image. Click when you spot them!
-        </p>
-        <Timer ref={timerRef} onStop={handleTimerStop} />
-      </div>
-      
-      <div className="relative max-w-4xl mx-auto">
-        <div className="relative inline-block w-full">
-          <Image
-            ref={imageRef}
-            src={currentImageSrc}
-            alt="Find the sniper in this image"
-            width={800}
-            height={600}
-            className={`w-full h-auto rounded-lg shadow-lg cursor-crosshair ${
-              showResult ? 'opacity-20 pointer-events-none select-none' : ''
-            }`}
-            onLoad={handleImageLoad}
-            onClick={handleImageClick}
-            priority
-          />
-          
-          {/* Level caption */}
-          <div className="text-center mt-2 text-sm text-gray-600">
-            Level {id}
-          </div>
-          
-          {/* Click dots */}
-          {clickDots.map((dot, index) => (
-            <div
-              key={index}
-              className="absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              style={{
-                left: `${dot.x}px`,
-                top: `${dot.y}px`,
-              }}
-            />
-          ))}
-
-
+    <main className="min-h-screen p-4">
+      <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Play Level {id}
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Find the hidden sniper in this image. Click when you spot them!
+          </p>
+          <Timer ref={timerRef} onStop={handleTimerStop} />
         </div>
-      </div>
+      
+        <div className="w-full overflow-hidden rounded-xl bg-neutral-900">
+          <div className="relative w-full">
+            <Image
+              ref={imageRef}
+              src={currentImageSrc}
+              alt="Find the sniper in this image"
+              width={800}
+              height={600}
+              className={`w-full h-auto block object-contain cursor-crosshair ${
+                showResult ? 'opacity-20 pointer-events-none select-none' : ''
+              }`}
+              onLoad={handleImageLoad}
+              onClick={handleImageClick}
+              priority
+            />
+          
+            {/* Click dots */}
+            {clickDots.map((dot, index) => (
+              <div
+                key={index}
+                className="absolute w-3 h-3 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{
+                  left: `${dot.x}px`,
+                  top: `${dot.y}px`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
 
-      <div className="mt-8 flex justify-between items-center max-w-4xl mx-auto">
-        <button
-          onClick={() => router.push(`/play/${Math.max(1, parseInt(id) - 1)}`)}
-          disabled={parseInt(id) <= 1}
-          className={`px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            parseInt(id) <= 1
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
-          }`}
-        >
-          Previous Level
-        </button>
-        <div className="text-gray-600">
+        {/* Level caption */}
+        <div className="text-center text-sm text-gray-600">
           Level {id}
         </div>
-        <button
-          onClick={resetGame}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Reset Game
-        </button>
-      </div>
 
-      {/* Results overlay */}
-      {showResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div 
-            className="w-full max-w-2xl rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-6"
-            aria-modal="true"
-            role="dialog"
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => router.push(`/play/${Math.max(1, parseInt(id) - 1)}`)}
+            disabled={parseInt(id) <= 1}
+            className={`w-full sm:w-auto px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              parseInt(id) <= 1
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
+            }`}
           >
-            <ResultPanel />
-          </div>
+            Previous Level
+          </button>
+          <button
+            onClick={resetGame}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Reset Game
+          </button>
         </div>
-      )}
-    </div>
+
+        {/* Results overlay */}
+        {showResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div 
+              className="w-full max-w-[560px] rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-4 sm:p-6"
+              aria-modal="true"
+              role="dialog"
+            >
+              <ResultPanel />
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
