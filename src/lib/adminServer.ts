@@ -1,6 +1,6 @@
 import 'server-only';
 
-/** Reads comma-separated IDs from env (server-side only) */
+/** Reads comma-separated ADMIN ids from env (server-only) */
 function getAdminIds(): string[] {
   const raw =
     process.env.ADMIN_USER_IDS ??
