@@ -725,21 +725,39 @@ export default function PlayDbPage() {
   function ResultPanel() {
     return (
       <div className="text-center">
-        <div className="text-2xl mb-2">🎯</div>
-        <div className="text-green-700 mb-1">
+        <div className="text-4xl mb-4">🎯</div>
+        <h2 className="text-xl font-semibold text-green-400 mb-2">
           {roundSummary?.hardStop ? 'Better luck next time!' : 'You found it!'}
-        </div>
-        <div className="text-gray-700 mb-2">
+        </h2>
+        <p className="text-sm text-white/70 mb-1">
           Time: {roundSummary ? (roundSummary.timeMs / 1000).toFixed(2) : (winMs / 1000).toFixed(2)}s {misses > 0 && `(${misses} misses)`}
-        </div>
+        </p>
         
-        <div className="mb-4">
+        {roundSummary && (
+          <div className="mb-4">
+            <p className="text-xs text-white/50 mb-2">
+              Performance vs baseline: {roundSummary.perfPct}% {roundSummary.perfPct > 0 ? 'faster' : 'slower'}
+            </p>
+            {misses > 0 && roundSummary.penalty > 0 && !roundSummary.isPractice && (
+              <p className="text-xs text-red-400 mb-1">
+                Miss penalty: −{roundSummary.penalty} pts
+              </p>
+            )}
+            {roundSummary.isPractice && (
+              <p className="text-xs text-white/60 mb-1">
+                Practice run — rating unchanged.
+              </p>
+            )}
+          </div>
+        )}
+        
+        <div className="mb-2">
           <LikeButton
             imageId={imageId!}
             guestId={playerId}
             initialLiked={liked}
             initialCount={likeCount}
-            className="text-gray-700 hover:text-red-500"
+            className="text-white hover:text-red-400"
             onChanged={(nextLiked, nextCount) => {
               setLiked(nextLiked);
               setLikeCount(nextCount);
@@ -748,49 +766,28 @@ export default function PlayDbPage() {
           />
         </div>
         
-        {roundSummary && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="text-blue-800 font-medium">
-              New rating: {roundSummary.eloAfter} (was {roundSummary.eloBefore})
-            </div>
-            <div className="text-blue-600 text-sm">
-              Performance vs baseline: {roundSummary.perfPct}% {roundSummary.perfPct > 0 ? 'faster' : 'slower'}
-            </div>
-            {misses > 0 && roundSummary.penalty > 0 && !roundSummary.isPractice && (
-              <div className="text-red-600 text-sm">
-                Miss penalty: −{roundSummary.penalty} pts
-              </div>
-            )}
-            {roundSummary.isPractice && (
-              <div className="text-gray-500 text-sm">
-                Practice run — rating unchanged.
-              </div>
-            )}
-          </div>
-        )}
-        
-        <div className="text-sm text-muted-foreground mt-4">
+        <p className="text-sm text-white/70 mb-2">
           Saved as <span className="font-medium">{displayName}</span>
-        </div>
+        </p>
 
         {/* Auto-save status */}
         <div className="mb-4">
           {isSaving ? (
-            <div className="text-blue-600">Saving…</div>
+            <p className="text-sm text-blue-400">Saving…</p>
           ) : saved ? (
-            <div className="text-green-600">Saved!</div>
+            <p className="text-sm text-green-400">Saved!</p>
           ) : null}
         </div>
 
-        <div className="flex gap-3 justify-center mb-4">
+        <div className="flex gap-2">
           <button
-            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
             onClick={resetRound}
           >
             Play Again
           </button>
           <button 
-            className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50" 
+            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition disabled:opacity-50" 
             onClick={goToNextImage}
             disabled={nextLoading}
           >
@@ -799,7 +796,7 @@ export default function PlayDbPage() {
         </div>
 
         {saveError && (
-          <div className="text-red-600 text-sm">
+          <div className="text-red-400 text-sm mt-3">
             {saveError}
           </div>
         )}
@@ -814,46 +811,57 @@ export default function PlayDbPage() {
   }
 
   return (
-    <main className="min-h-screen p-4">
-      <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
-        <header className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-100">Play (DB)</h1>
-            {started && (
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
-                <span className="shrink-0">Time: {((status === "found" ? winMs : elapsedMs) / 1000).toFixed(2)}s</span>
-                <span className="shrink-0 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-                  Misses: {misses}/10
-                </span>
-              </div>
-            )}
-          </div>
+    <div className="relative min-h-[80vh]">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)",
+          }}
+        />
+      </div>
 
-          <LikeButton
-            imageId={imageId!}
-            guestId={playerId}
-            initialLiked={liked}
-            initialCount={likeCount}
-            className="shrink-0 text-white hover:text-red-400"
-            onChanged={(nextLiked, nextCount) => {
-              setLiked(nextLiked);
-              setLikeCount(nextCount);
-              console.debug('like.changed', { nextLiked, nextCount });
-            }}
-          />
-        </header>
+      <main className="min-h-screen p-4">
+        <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h1 className="text-2xl md:text-3xl font-semibold text-white">
+              {img.description?.trim() ? `Description: ${img.description.trim()}` : "Find the Sniper"}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              {started && (
+                <>
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+                    Time: {((status === "found" ? winMs : elapsedMs) / 1000).toFixed(2)}s
+                  </span>
+                  <span className="rounded-full bg-red-500/20 text-red-300 px-3 py-1 text-sm">
+                    Misses: {misses}/10
+                  </span>
+                </>
+              )}
+              <LikeButton
+                imageId={imageId!}
+                guestId={playerId}
+                initialLiked={liked}
+                initialCount={likeCount}
+                className="shrink-0 text-white hover:text-red-400"
+                onChanged={(nextLiked, nextCount) => {
+                  setLiked(nextLiked);
+                  setLikeCount(nextCount);
+                  console.debug('like.changed', { nextLiked, nextCount });
+                }}
+              />
+            </div>
+          </div>
       
-        <p className="text-gray-300">Find the hidden spot in this image. Click when you spot it!</p>
-        {img.description?.trim() && (
-          <div className="text-sm text-gray-400">Find: {img.description.trim()}</div>
-        )}
+        <p className="text-white/80">Find the hidden spot in this image. Click when you spot it!</p>
 
         <div className="w-full overflow-hidden rounded-xl bg-neutral-900">
           <div className="relative w-full select-none">
             {/* Placeholder before start or after give up */}
             {(!imgSrc || status === "gaveUp") && (
-              <div className="w-full aspect-[4/3] rounded-lg border border-gray-700 bg-gray-800 flex items-center justify-center">
-                <div className="text-gray-500 text-center">
+              <div className="w-full aspect-[4/3] rounded-lg border border-white/20 bg-black/40 flex items-center justify-center">
+                <div className="text-white/60 text-center">
                   <div className="text-4xl mb-2">🖼️</div>
                   <div className="text-sm">Image will load when you start</div>
                 </div>
@@ -879,17 +887,17 @@ export default function PlayDbPage() {
             {/* Pre-game start overlay */}
             {!started && status === "ready" && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
-                <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 max-w-md mx-4 text-center">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{imageTitle}</h2>
+                <div className="mx-auto max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6 text-center">
+                  <h2 className="text-xl font-semibold text-white mb-1">{imageTitle}</h2>
                   {img.location?.trim() && (
-                    <p className="text-sm text-gray-600 mb-3">{img.location.trim()}</p>
+                    <p className="text-sm text-white/60 mb-1">{img.location.trim()}</p>
                   )}
                   {img.description?.trim() && (
-                    <p className="text-sm text-gray-700 mb-4 italic">Find: {img.description.trim()}</p>
+                    <p className="text-sm italic text-white/70 mb-4">Find: {img.description.trim()}</p>
                   )}
                   <button
                     onClick={handleStart}
-                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium text-lg"
+                    className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
                   >
                     Start
                   </button>
@@ -904,7 +912,7 @@ export default function PlayDbPage() {
           <div className="text-center">
             <button
               onClick={handleGiveUp}
-              className="w-full sm:w-auto px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              className="w-full sm:w-auto px-4 py-2 rounded-full bg-white/10 text-white/90 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition"
             >
               Give Up
             </button>
@@ -913,21 +921,21 @@ export default function PlayDbPage() {
 
         {/* Give up end panel */}
         {status === "gaveUp" && (
-          <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 text-center">
+          <div className="mx-auto max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6 text-center">
             <div className="text-2xl mb-2">😔</div>
-            <div className="text-gray-700 mb-4">You gave up</div>
+            <div className="text-white/70 mb-4">You gave up</div>
             
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
               <button
-                className="w-full sm:w-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
                 onClick={resetRound}
               >
                 Play Again
               </button>
-              <a className="w-full sm:w-auto px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700" href="/feed">
+              <a className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition inline-flex items-center justify-center" href="/feed">
                 Back to Feed
               </a>
-              <button className="w-full sm:w-auto px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
+              <button className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition" onClick={goToNextImage}>
                 Next Level
               </button>
             </div>
@@ -938,7 +946,7 @@ export default function PlayDbPage() {
         {showResult && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
             <div 
-              className="w-full max-w-[560px] rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-4 sm:p-6"
+              className="w-full max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6"
               aria-modal="true"
               role="dialog"
             >
@@ -948,5 +956,6 @@ export default function PlayDbPage() {
         )}
       </div>
     </main>
+    </div>
   );
 }

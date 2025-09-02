@@ -121,15 +121,15 @@ export default function PlayPage({ params }: PlayPageProps) {
       return (
         <div className="text-center">
           <div className="text-4xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-blue-600 mb-2">
+          <h2 className="text-xl font-semibold text-green-400 mb-2">
             Congratulations!
           </h2>
-          <p className="text-gray-700 mb-4">
+          <p className="text-sm text-white/70 mb-4">
             {completionMessage}
           </p>
           <button
             onClick={() => router.push('/feed')}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
           >
             Browse Feed
           </button>
@@ -140,26 +140,22 @@ export default function PlayPage({ params }: PlayPageProps) {
     return (
       <div className="text-center">
         <div className="text-4xl mb-4">🎯</div>
-        <h2 className="text-2xl font-bold text-green-600 mb-2">
+        <h2 className="text-xl font-semibold text-green-400 mb-2">
           You found it!
         </h2>
-        <p className="text-gray-700 mb-4">
-          You found the sniper in{' '}
-          <span className="font-bold">
-            {(winTime / 1000).toFixed(2)}s
-          </span>
-          !
+        <p className="text-sm text-white/70 mb-1">
+          Time: {(winTime / 1000).toFixed(2)}s
         </p>
-        <div className="space-y-2">
+        <div className="flex gap-2 mt-4">
           <button
             onClick={resetGame}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
           >
             Play Again
           </button>
           <button
             onClick={goToNextLevel}
-            className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
           >
             Next Level
           </button>
@@ -169,17 +165,31 @@ export default function PlayPage({ params }: PlayPageProps) {
   }
 
   return (
-    <main className="min-h-screen p-4">
-      <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Play Level {id}
-          </h1>
-          <p className="text-gray-600 mb-4">
+    <div className="relative min-h-[80vh]">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)",
+          }}
+        />
+      </div>
+
+      <main className="min-h-screen p-4">
+        <div className="mx-auto w-full max-w-[680px] md:max-w-[860px] space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h1 className="text-2xl md:text-3xl font-semibold text-white">
+              Find the Sniper
+            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <Timer ref={timerRef} onStop={handleTimerStop} />
+            </div>
+          </div>
+          
+          <p className="text-white/80 mb-4">
             Find the hidden sniper in this image. Click when you spot them!
           </p>
-          <Timer ref={timerRef} onStop={handleTimerStop} />
-        </div>
       
         <div className="w-full overflow-hidden rounded-xl bg-neutral-900">
           <div className="relative w-full">
@@ -212,7 +222,7 @@ export default function PlayPage({ params }: PlayPageProps) {
         </div>
 
         {/* Level caption */}
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm text-white/60">
           Level {id}
         </div>
 
@@ -220,17 +230,17 @@ export default function PlayPage({ params }: PlayPageProps) {
           <button
             onClick={() => router.push(`/play/${Math.max(1, parseInt(id) - 1)}`)}
             disabled={parseInt(id) <= 1}
-            className={`w-full sm:w-auto px-4 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            className={`w-full sm:w-auto px-4 py-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-white/30 ${
               parseInt(id) <= 1
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
+                ? 'bg-white/5 text-white/40 cursor-not-allowed'
+                : 'bg-white/10 text-white/90 hover:bg-white/20 hover:text-white'
             }`}
           >
             Previous Level
           </button>
           <button
             onClick={resetGame}
-            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full sm:w-auto px-4 py-2 bg-white/10 text-white/90 rounded-full hover:bg-white/20 hover:text-white transition focus:outline-none focus:ring-2 focus:ring-white/30"
           >
             Reset Game
           </button>
@@ -240,7 +250,7 @@ export default function PlayPage({ params }: PlayPageProps) {
         {showResult && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
             <div 
-              className="w-full max-w-[560px] rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-4 sm:p-6"
+              className="w-full max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6"
               aria-modal="true"
               role="dialog"
             >
@@ -250,5 +260,6 @@ export default function PlayPage({ params }: PlayPageProps) {
         )}
       </div>
     </main>
+    </div>
   );
 }
