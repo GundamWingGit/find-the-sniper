@@ -1,24 +1,22 @@
-export default function Home() {
+import { SignIn } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+
+export default async function Home() {
+  const { userId } = await auth();
+  if (userId) redirect('/feed');
+
   return (
-    <div className="text-center py-16">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">
-        Find the Sniper
-      </h1>
-      <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-        Test your observation skills by finding hidden snipers in challenging images. 
-        Can you spot them all?
-      </p>
-      <div className="space-y-4">
-        <a
-          href="/play/1"
-          className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Start Playing
-        </a>
-        <div className="text-sm text-gray-500">
-          New challenges added daily
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="max-w-md w-full space-y-6 text-center">
+        <h1 className="text-2xl font-semibold">Find the Sniper</h1>
+        <p className="text-sm opacity-70">
+          Spot the hidden target as fast as you can. Log in to start your first game!
+        </p>
+        <div className="mx-auto">
+          <SignIn routing="hash" redirectUrl="/feed" />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
