@@ -18,6 +18,7 @@ export default function PlayPage({ params }: PlayPageProps) {
   const router = useRouter();
   const [id, setId] = useState<string>('');
   const [gameWon, setGameWon] = useState(false);
+  const [showResult, setShowResult] = useState(false);
   const [winTime, setWinTime] = useState<number>(0);
   const [clickDots, setClickDots] = useState<ClickDot[]>([]);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -58,6 +59,8 @@ export default function PlayPage({ params }: PlayPageProps) {
       // Player found the sniper!
       timerRef.current?.stop();
       setGameWon(true);
+      setShowResult(true);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
 
@@ -67,6 +70,7 @@ export default function PlayPage({ params }: PlayPageProps) {
 
   const resetGame = () => {
     setGameWon(false);
+    setShowResult(false);
     setWinTime(0);
     setClickDots([]);
     timerRef.current?.resetAndStart();
@@ -76,6 +80,39 @@ export default function PlayPage({ params }: PlayPageProps) {
     const nextId = parseInt(id) + 1;
     router.push(`/play/${nextId}`);
   };
+
+  // Results panel component
+  function ResultPanel() {
+    return (
+      <div className="text-center">
+        <div className="text-4xl mb-4">🎯</div>
+        <h2 className="text-2xl font-bold text-green-600 mb-2">
+          You found it!
+        </h2>
+        <p className="text-gray-700 mb-4">
+          You found the sniper in{' '}
+          <span className="font-bold">
+            {(winTime / 1000).toFixed(2)}s
+          </span>
+          !
+        </p>
+        <div className="space-y-2">
+          <button
+            onClick={resetGame}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Play Again
+          </button>
+          <button
+            onClick={goToNextLevel}
+            className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Next Level
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-8">
@@ -97,7 +134,9 @@ export default function PlayPage({ params }: PlayPageProps) {
             alt="Find the sniper in this image"
             width={800}
             height={600}
-            className="w-full h-auto rounded-lg shadow-lg cursor-crosshair"
+            className={`w-full h-auto rounded-lg shadow-lg cursor-crosshair ${
+              showResult ? 'opacity-20 pointer-events-none select-none' : ''
+            }`}
             onLoad={handleImageLoad}
             onClick={handleImageClick}
             priority
@@ -120,38 +159,7 @@ export default function PlayPage({ params }: PlayPageProps) {
             />
           ))}
 
-          {/* Win overlay */}
-          {gameWon && (
-            <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center rounded-lg">
-              <div className="bg-white p-8 rounded-lg text-center max-w-sm mx-4">
-                <div className="text-4xl mb-4">🎯</div>
-                <h2 className="text-2xl font-bold text-green-600 mb-2">
-                  You found it!
-                </h2>
-                <p className="text-gray-700 mb-4">
-                  You found the sniper in{' '}
-                  <span className="font-bold">
-                    {(winTime / 1000).toFixed(2)}s
-                  </span>
-                  !
-                </p>
-                <div className="space-y-2">
-                  <button
-                    onClick={resetGame}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    Play Again
-                  </button>
-                  <button
-                    onClick={goToNextLevel}
-                    className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                  >
-                    Next Level
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
 
@@ -177,6 +185,19 @@ export default function PlayPage({ params }: PlayPageProps) {
           Reset Game
         </button>
       </div>
+
+      {/* Results overlay */}
+      {showResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div 
+            className="w-full max-w-2xl rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-6"
+            aria-modal="true"
+            role="dialog"
+          >
+            <ResultPanel />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

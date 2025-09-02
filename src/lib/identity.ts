@@ -1,5 +1,7 @@
 'use client';
 
+// UserResource type will be imported from @clerk/nextjs where needed
+
 /**
  * Returns a stable "guest_id" in localStorage for anonymous play.
  * Safe for SSR: if window/localStorage is unavailable, returns ''.
@@ -19,6 +21,13 @@ export function getOrCreateLocalGuestId(): string {
   } catch {
     return '';
   }
+}
+
+/** Get a default display name from a Clerk user object on the client. */
+export function getDefaultDisplayNameFromUser(user?: any): string {
+  if (!user) return 'Player';
+  const emailName = user?.primaryEmailAddress?.emailAddress?.split('@')[0];
+  return user?.fullName || emailName || 'Player';
 }
 
 /**

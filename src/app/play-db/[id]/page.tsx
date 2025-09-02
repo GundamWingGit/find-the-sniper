@@ -41,7 +41,7 @@ type RoundSummary = {
   isPractice?: boolean;
 };
 
-const NAME_KEY = 'fts_player_name';
+// NAME_KEY removed - no longer storing names in localStorage
 
 // Helper: check if player previously solved this image
 async function hasSolvedBefore(supabase: any, playerId: string, imageId: string): Promise<boolean> {
@@ -75,36 +75,7 @@ const buildUsedMs = (rawMs: number, misses: number, baselineMs: number) => {
   return Math.round(rawMs * penaltyFactor);
 };
 
-function getStoredName(): string | null {
-  try {
-    const stored = localStorage.getItem(NAME_KEY);
-    const trimmed = stored?.trim();
-    return trimmed && trimmed.length > 0 ? trimmed : null;
-  } catch {
-    return null;
-  }
-}
-
-function sanitizeName(s: string): string {
-  return s
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/[\x00-\x1F\x7F]/g, '')
-    .slice(0, 50);
-}
-
-function setStoredName(name: string | null): void {
-  try {
-    if (!name || name.trim().length === 0) {
-      localStorage.removeItem(NAME_KEY);
-    } else {
-      const sanitized = sanitizeName(name);
-      localStorage.setItem(NAME_KEY, sanitized);
-    }
-  } catch {
-    // Graceful fallback if localStorage unavailable
-  }
-}
+// Name storage functions removed - now using displayName directly from Clerk or default
 
 async function upsertPlayerNameNow(supabase: any, id: string, name: string) {
   try {
@@ -123,6 +94,7 @@ export default function PlayDbPage() {
   const imageId = params?.id;
 
   const [status, setStatus] = useState<Status>("loading");
+  const [showResult, setShowResult] = useState(false);
   const [img, setImg] = useState<ImageRow | null>(null);
   const [target, setTarget] = useState<TargetRow | null>(null);
   const [err, setErr] = useState<string>("");
@@ -134,10 +106,7 @@ export default function PlayDbPage() {
   const [elapsedMs, setElapsedMs] = useState<number>(0);
   const [winMs, setWinMs] = useState<number>(0);
   const [hasSavedScore, setHasSavedScore] = useState<boolean>(false);
-  const [localName, setLocalName] = React.useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    return localStorage.getItem('player_name') ?? '';
-  });
+  // localName removed - now using displayName consistently
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -181,7 +150,7 @@ export default function PlayDbPage() {
   }
 
   // Unified display name for this round
-  const displayName = isAuthed ? deriveClerkDisplayName(user) : localName;
+  const displayName = isAuthed ? deriveClerkDisplayName(user) : 'Player';
 
   React.useEffect(() => {
     if (!isAuthed || !user?.id) return;
@@ -386,6 +355,7 @@ export default function PlayDbPage() {
     setElapsed(0);
     setStartTime(null);
     setStatus("ready");
+    setShowResult(false);
     setWinMs(0);
     setHasSavedScore(false);
     setSaved(false);
@@ -409,20 +379,15 @@ export default function PlayDbPage() {
 
   // handlePlayerNameChange removed - now using localName state
 
-  function handleChangeName() {
-    const current = getStoredName() ?? '';
-    const input = window.prompt('Update your display name (optional):', current);
-    if (input != null) {
-      const sanitized = sanitizeName(input);
-      setStoredName(sanitized || null);
-    }
-  }
+  // handleChangeName removed - no longer needed
 
   // Centralized end-round functions with explicit result and rated logic
   async function endRoundSuccess() {
     stopTimer();
     stopGameTimer();
     setStatus("found");
+    setShowResult(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     lockRound();
     
 
@@ -430,15 +395,7 @@ export default function PlayDbPage() {
     const rawMs = Math.max(0, Math.round(performance.now() - roundStartTimeRef.current));
     const usedMs = buildUsedMs(rawMs, missesRef.current, baselineMs);
 
-    let name = getStoredName();
-    if (!name) {
-      const input = window.prompt('Enter a display name (optional):', '');
-      if (input != null) {
-        const sanitized = sanitizeName(input);
-        name = sanitized || null;
-        setStoredName(name);
-      }
-    }
+    let name = displayName;
 
     const solvedBefore = await hasSolvedBefore(supabase, playerId, imageId!);
     const rated = !solvedBefore;
@@ -470,7 +427,7 @@ export default function PlayDbPage() {
       elo_image_after: elo?.imageAfter ?? null,
     }]).select('id');
 
-    const savedName = isAuthed ? deriveClerkDisplayName(user) : localName;
+    const savedName = displayName;
     await supabase
       .from('player_name')
       .upsert({ guest_id: playerId, name: savedName }, { onConflict: 'guest_id' });
@@ -503,6 +460,8 @@ export default function PlayDbPage() {
     stopTimer();
     stopGameTimer();
     setStatus("found");
+    setShowResult(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     lockRound();
     
 
@@ -512,15 +471,7 @@ export default function PlayDbPage() {
     const verySlow = Math.round(baselineMs * 6);
     const usedMs = Math.max(penalized, verySlow);
 
-    let name = getStoredName();
-    if (!name) {
-      const input = window.prompt('Enter a display name (optional):', '');
-      if (input != null) {
-        const sanitized = sanitizeName(input);
-        name = sanitized || null;
-        setStoredName(name);
-      }
-    }
+    let name = displayName;
 
     const solvedBefore = await hasSolvedBefore(supabase, playerId, imageId!);
     const rated = !solvedBefore;       // fail affects rating only until first success exists
@@ -554,7 +505,7 @@ export default function PlayDbPage() {
       elo_image_after: elo?.imageAfter ?? null,
     }]).select('id');
 
-    const savedName = isAuthed ? deriveClerkDisplayName(user) : localName;
+    const savedName = displayName;
     await supabase
       .from('player_name')
       .upsert({ guest_id: playerId, name: savedName }, { onConflict: 'guest_id' });
@@ -587,6 +538,8 @@ export default function PlayDbPage() {
     stopTimer();
     stopGameTimer();
     setStatus("found");
+    setShowResult(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     lockRound();
     
 
@@ -596,15 +549,7 @@ export default function PlayDbPage() {
     const verySlow = Math.round(baselineMs * 6);
     const usedMs = Math.max(penalized, verySlow);
 
-    let name = getStoredName();
-    if (!name) {
-      const input = window.prompt('Enter a display name (optional):', '');
-      if (input != null) {
-        const sanitized = sanitizeName(input);
-        name = sanitized || null;
-        setStoredName(name);
-      }
-    }
+    let name = displayName;
 
     const solvedBefore = await hasSolvedBefore(supabase, playerId, imageId!);
     const rated = !solvedBefore;
@@ -638,7 +583,7 @@ export default function PlayDbPage() {
       elo_image_after: elo?.imageAfter ?? null,
     }]).select('id');
 
-    const savedName = isAuthed ? deriveClerkDisplayName(user) : localName;
+    const savedName = displayName;
     await supabase
       .from('player_name')
       .upsert({ guest_id: playerId, name: savedName }, { onConflict: 'guest_id' });
@@ -758,6 +703,88 @@ export default function PlayDbPage() {
   // Debug logging for render
   console.debug('like.render', { imageId, playerId, liked, likeCount });
 
+  // Results panel component
+  function ResultPanel() {
+    return (
+      <div className="text-center">
+        <div className="text-2xl mb-2">🎯</div>
+        <div className="text-green-700 mb-1">
+          {roundSummary?.hardStop ? 'Better luck next time!' : 'You found it!'}
+        </div>
+        <div className="text-gray-700 mb-2">
+          Time: {roundSummary ? (roundSummary.timeMs / 1000).toFixed(2) : (winMs / 1000).toFixed(2)}s {misses > 0 && `(${misses} misses)`}
+        </div>
+        
+        <div className="mb-4">
+          <LikeButton
+            imageId={imageId!}
+            guestId={playerId}
+            initialLiked={liked}
+            initialCount={likeCount}
+            className="text-gray-700 hover:text-red-500"
+            onChanged={(nextLiked, nextCount) => {
+              setLiked(nextLiked);
+              setLikeCount(nextCount);
+              console.debug('like.changed', { nextLiked, nextCount });
+            }}
+          />
+        </div>
+        
+        {roundSummary && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-blue-800 font-medium">
+              New rating: {roundSummary.eloAfter} (was {roundSummary.eloBefore})
+            </div>
+            <div className="text-blue-600 text-sm">
+              Performance vs baseline: {roundSummary.perfPct}% {roundSummary.perfPct > 0 ? 'faster' : 'slower'}
+            </div>
+            {misses > 0 && roundSummary.penalty > 0 && !roundSummary.isPractice && (
+              <div className="text-red-600 text-sm">
+                Miss penalty: −{roundSummary.penalty} pts
+              </div>
+            )}
+            {roundSummary.isPractice && (
+              <div className="text-gray-500 text-sm">
+                Practice run — rating unchanged.
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div className="text-sm text-muted-foreground mt-4">
+          Saved as <span className="font-medium">{displayName}</span>
+        </div>
+
+        {/* Auto-save status */}
+        <div className="mb-4">
+          {isSaving ? (
+            <div className="text-blue-600">Saving…</div>
+          ) : saved ? (
+            <div className="text-green-600">Saved!</div>
+          ) : null}
+        </div>
+
+        <div className="flex gap-3 justify-center mb-4">
+          <button
+            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            onClick={resetRound}
+          >
+            Play Again
+          </button>
+          <button className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
+            Next Level
+          </button>
+        </div>
+
+        {saveError && (
+          <div className="text-red-600 text-sm">
+            {saveError}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <header className="flex items-center justify-between gap-3 mb-4">
@@ -811,12 +838,14 @@ export default function PlayDbPage() {
 
         {/* Actual image (only when playing or won) */}
         {imgSrc && status !== "gaveUp" && (
-          <div className={isRoundOverRef.current ? 'pointer-events-none' : ''}>
+          <div className={isRoundOverRef.current || showResult ? 'pointer-events-none' : ''}>
             <img
               ref={imgRef}
               src={imgSrc}
               alt="play"
-              className={`max-w-full rounded-lg border border-gray-700 ${started && status === "ready" ? "cursor-crosshair" : "cursor-default"}`}
+              className={`max-w-full rounded-lg border border-gray-700 ${
+                started && status === "ready" ? "cursor-crosshair" : "cursor-default"
+              } ${showResult ? 'opacity-20 pointer-events-none select-none' : ''}`}
               onLoad={handleImageLoad}
               onClick={handleClick}
             />
@@ -880,109 +909,16 @@ export default function PlayDbPage() {
         </div>
       )}
 
-      {/* Win panel */}
-      {status === "found" && (
-        <div className="mt-6 p-4 rounded-lg bg-green-50 border border-green-200 text-center">
-          <div className="text-2xl mb-2">🎯</div>
-          <div className="text-green-700 mb-1">
-            {roundSummary?.hardStop ? 'Better luck next time!' : 'You found it!'}
+      {/* Results overlay */}
+      {showResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div 
+            className="w-full max-w-2xl rounded-2xl bg-white/95 dark:bg-neutral-900/95 shadow-xl p-6"
+            aria-modal="true"
+            role="dialog"
+          >
+            <ResultPanel />
           </div>
-          <div className="text-gray-700 mb-2">
-            Time: {roundSummary ? (roundSummary.timeMs / 1000).toFixed(2) : (winMs / 1000).toFixed(2)}s {misses > 0 && `(${misses} misses)`}
-          </div>
-          
-          <div className="mb-4">
-            <LikeButton
-              imageId={imageId!}
-              guestId={playerId}
-              initialLiked={liked}
-              initialCount={likeCount}
-              className="text-gray-700 hover:text-red-500"
-              onChanged={(nextLiked, nextCount) => {
-                setLiked(nextLiked);
-                setLikeCount(nextCount);
-                console.debug('like.changed', { nextLiked, nextCount });
-              }}
-            />
-          </div>
-          
-          {roundSummary && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="text-blue-800 font-medium">
-                New rating: {roundSummary.eloAfter} (was {roundSummary.eloBefore})
-              </div>
-              <div className="text-blue-600 text-sm">
-                Performance vs baseline: {roundSummary.perfPct}% {roundSummary.perfPct > 0 ? 'faster' : 'slower'}
-              </div>
-              {misses > 0 && roundSummary.penalty > 0 && !roundSummary.isPractice && (
-                <div className="text-red-600 text-sm">
-                  Miss penalty: −{roundSummary.penalty} pts
-                </div>
-              )}
-              {roundSummary.isPractice && (
-                <div className="text-gray-500 text-sm">
-                  Practice run — rating unchanged.
-                </div>
-              )}
-            </div>
-          )}
-          
-          {!isAuthed ? (
-            <>
-              <div className="text-sm mt-4 mb-1">Your name (optional)</div>
-              <input
-                value={localName}
-                onChange={(e) => {
-                  setLocalName(e.target.value);
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('player_name', e.target.value);
-                  }
-                }}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                placeholder="Your name"
-              />
-            </>
-          ) : (
-            <div className="text-sm text-muted-foreground mt-4">
-              Saved as <span className="font-medium">{displayName}</span>
-            </div>
-          )}
-
-          {/* Auto-save status */}
-          <div className="mb-4">
-            {isSaving ? (
-              <div className="text-blue-600">Saving…</div>
-            ) : saved ? (
-              <div className="text-green-600">Saved!</div>
-            ) : null}
-          </div>
-
-          <div className="flex gap-3 justify-center mb-4">
-            <button
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-              onClick={resetRound}
-            >
-              Play Again
-            </button>
-            <button className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-800" onClick={goToNextImage}>
-              Next Level
-            </button>
-          </div>
-
-          <div className="mt-2">
-            <button
-              onClick={handleChangeName}
-              className="text-sm text-blue-600 hover:text-blue-700 underline"
-            >
-              Change name
-            </button>
-          </div>
-
-          {saveError && (
-            <div className="text-red-600 text-sm">
-              {saveError}
-            </div>
-          )}
         </div>
       )}
     </div>
