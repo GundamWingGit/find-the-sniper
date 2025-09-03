@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import supabase from '@/lib/supabase';
 import SetTargetButton from '@/components/SetTargetButton';
+import FeedGuard from '@/components/FeedGuard';
 
 type FeedImage = { 
   id: string; 
@@ -245,15 +246,16 @@ export default function FeedPage() {
   useEffect(() => { loadFeed(sort); }, [sort]);
 
   return (
-    <div className="relative min-h-[80vh] py-8">
-      {/* Gradient Background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
-             style={{
-               background: "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)"
-             }}
-        />
-      </div>
+    <FeedGuard>
+      <div className="relative min-h-[80vh] py-8">
+        {/* Gradient Background */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+               style={{
+                 background: "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)"
+               }}
+          />
+        </div>
 
       <div className="max-w-5xl mx-auto">
         <h1 className="text-white text-3xl md:text-4xl font-semibold mb-6">Community Feed</h1>
@@ -303,17 +305,39 @@ export default function FeedPage() {
               <div key={img.id} className="rounded-2xl bg-black/70 shadow-xl p-4 relative overflow-hidden" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(29,78,216,0.4), rgba(147,51,234,0.3), rgba(249,115,22,0.2))'}}>
                 <div className="relative z-10">
                 <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative overflow-hidden rounded-lg">
-                  {src ? (
-                    <img
-                      src={src}
-                      alt={img.title ?? ''}
-                      className="w-full h-full object-cover blur-sm"
-                      loading="lazy"
-                    />
+                  {playable ? (
+                    <Link
+                      href={`/play-db/${img.id}`}
+                      className="w-full h-full block cursor-pointer"
+                    >
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={img.title ?? ''}
+                          className="w-full h-full object-cover blur-sm hover:blur-none transition-all duration-200"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs">
+                          No preview
+                        </div>
+                      )}
+                    </Link>
                   ) : (
-                    <div className="h-48 w-full bg-white/10 flex items-center justify-center text-white/50 text-xs">
-                      No preview
-                    </div>
+                    <>
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={img.title ?? ''}
+                          className="w-full h-full object-cover blur-sm opacity-50 cursor-not-allowed"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs opacity-50">
+                          No preview
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -354,5 +378,6 @@ export default function FeedPage() {
         </div>
       </div>
     </div>
+    </FeedGuard>
   );
 }

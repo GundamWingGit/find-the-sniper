@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { SignInButton } from "@clerk/nextjs";
+import SignInCta from "@/components/SignInCta";
+import GuestCta from "@/components/GuestCta";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -27,14 +28,13 @@ export default async function HomePage() {
           Spot the target faster than everyone else to climb the ranks and earn rewards.
         </p>
 
-        <div className="mt-10 flex items-center justify-center">
-          <SignInButton mode="modal" afterSignInUrl="/welcome" afterSignUpUrl="/welcome">
-            <button
-              className="rounded-full bg-white/10 text-white/90 px-6 py-3 font-semibold hover:bg-white/20 hover:text-white transition backdrop-blur"
-            >
-              Sign in to play
-            </button>
-          </SignInButton>
+        <div className="mt-10 flex items-center justify-center gap-3">
+          <SignInCta className="rounded-full bg-white/10 text-white/90 px-6 py-3 font-semibold hover:bg-white/20 hover:text-white transition backdrop-blur">
+            Sign in to play
+          </SignInCta>
+          <GuestCta className="rounded-full bg-white/5 text-white/70 px-6 py-3 font-semibold hover:bg-white/10 hover:text-white transition backdrop-blur">
+            Continue as guest
+          </GuestCta>
         </div>
 
         <p className="mt-8 text-sm text-white/60">

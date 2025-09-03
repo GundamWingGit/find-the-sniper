@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Timer, { TimerRef } from '../../../components/Timer';
 import { getOrCreateLocalGuestId } from '@/lib/identity';
+import { getGuest, getOrCreateGuestId } from '@/lib/guest';
 
 interface PlayPageProps {
   params: Promise<{ id: string }>;
@@ -28,7 +29,10 @@ export default function PlayPage({ params }: PlayPageProps) {
   const timerRef = useRef<TimerRef>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   
-  const guestId = getOrCreateLocalGuestId();
+  const guestId = (() => {
+    const guest = getGuest();
+    return guest?.id ?? getOrCreateGuestId();
+  })();
 
   const demoImages = ["/images/demo.jpeg", "/images/demo2.jpeg", "/images/demo3.jpeg"];
 

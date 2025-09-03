@@ -1,21 +1,52 @@
 'use client';
 
 import Link from 'next/link';
-import { SignInButton, UserButton, useAuth } from '@clerk/nextjs';
-import { useState } from 'react';
+import { UserButton, useAuth, useClerk } from '@clerk/nextjs';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import GuestNameModal from '@/components/GuestNameModal';
+import { getGuest, signOutGuest } from '@/lib/guest';
 
 export default function Header() {
   const { isSignedIn } = useAuth();
+  const { openSignUp } = useClerk();
   const [open, setOpen] = useState(false);
+  const [guestOpen, setGuestOpen] = useState(false);
+  const [guestDropdownOpen, setGuestDropdownOpen] = useState(false);
+  const [hasGuest, setHasGuest] = useState(false);
+  const [guestName, setGuestName] = useState<string | null>(null);
   const pathname = usePathname();
 
+  useEffect(() => {
+    const guest = getGuest();
+    setHasGuest(!!guest);
+    setGuestName(guest?.name || null);
+    
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'fts_guest_v1') {
+        const updatedGuest = getGuest();
+        setHasGuest(!!updatedGuest);
+        setGuestName(updatedGuest?.name || null);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const canViewFeed = isSignedIn || hasGuest;
+
   const close = () => setOpen(false);
+
+  const handleGuestSignOut = () => {
+    signOutGuest();
+    setGuestDropdownOpen(false);
+    // State will be updated automatically by the storage event listener
+  };
 
   const links = [
     { href: '/', label: 'Home' },
     { href: '/play-db', label: 'Play' },
-    { href: '/feed', label: 'Feed' },
+    ...(canViewFeed ? [{ href: '/feed', label: 'Feed' }] : []),
     { href: '/upload', label: 'Upload' },
     { href: '/leaderboard', label: 'Leaderboard' },
   ];
@@ -46,7 +77,57 @@ export default function Header() {
               );
             })}
             <div className="ml-2">
-              {isSignedIn ? <UserButton /> : <SignInButton mode="modal" afterSignInUrl="/welcome" />}
+              {isSignedIn ? (
+                <UserButton />
+              ) : (
+                <div className="flex items-center gap-2">
+                  {hasGuest && guestName && (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setGuestDropdownOpen(!guestDropdownOpen)}
+                        className="rounded-full bg-green-500/20 text-green-300 px-3 py-1.5 text-sm font-medium border border-green-400/30 hover:bg-green-500/30 transition"
+                      >
+                        Guest: {guestName} ▼
+                      </button>
+                      
+                      {guestDropdownOpen && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setGuestDropdownOpen(false)}
+                          />
+                          <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl border border-white/20 bg-black/80 backdrop-blur shadow-xl p-2">
+                            <button
+                              type="button"
+                              onClick={handleGuestSignOut}
+                              className="w-full text-left px-3 py-2 rounded-lg text-sm text-white/90 hover:bg-white/10 transition"
+                            >
+                              Sign out
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => openSignUp({ afterSignUpUrl: '/welcome', afterSignInUrl: '/welcome' })}
+                    className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
+                  >
+                    Create account
+                  </button>
+                  {!hasGuest && (
+                    <button
+                      type="button"
+                      onClick={() => setGuestOpen(true)}
+                      className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
+                    >
+                      Continue as guest
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </nav>
 
@@ -101,13 +182,66 @@ export default function Header() {
                   </Link>
                 );
               })}
-              <div className="px-3 py-2">
-                {isSignedIn ? <UserButton afterSignOutUrl="/" /> : <SignInButton mode="modal" afterSignInUrl="/welcome" />}
+              <div className="px-3 py-2 space-y-2">
+                {isSignedIn ? (
+                  <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <>
+                    {hasGuest && guestName && (
+                      <>
+                        <div className="w-full rounded-full bg-green-500/20 text-green-300 px-4 py-2 text-sm font-medium border border-green-400/30 text-center">
+                          Guest: {guestName}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleGuestSignOut();
+                            setOpen(false);
+                          }}
+                          className="w-full rounded-full bg-red-500/20 text-red-300 px-4 py-2 text-sm font-medium border border-red-400/30 hover:bg-red-500/30 hover:text-red-200 transition"
+                        >
+                          Sign out
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openSignUp({ afterSignUpUrl: '/welcome', afterSignInUrl: '/welcome' });
+                        setOpen(false);
+                      }}
+                      className="w-full rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
+                    >
+                      Create account
+                    </button>
+                    {!hasGuest && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGuestOpen(true);
+                          setOpen(false);
+                        }}
+                        className="w-full rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
+                      >
+                        Continue as guest
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </nav>
           </div>
         </>
       )}
+      
+      <GuestNameModal
+        open={guestOpen}
+        onClose={() => setGuestOpen(false)}
+        onRegistered={(guest) => {
+          setHasGuest(true);
+          setGuestName(guest.name);
+        }}
+      />
     </header>
   );
 }

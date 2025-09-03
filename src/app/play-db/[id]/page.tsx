@@ -6,6 +6,7 @@ import Link from "next/link";
 import supabase from "@/lib/supabase";
 import { useUser } from '@clerk/nextjs';
 import { getOrCreateLocalGuestId, linkGuestToProfile } from '@/lib/identity';
+import { getGuest, getOrCreateGuestId } from '@/lib/guest';
 import { getBaselineForImageP60 } from "@/lib/rating";
 import { applyEloForRound, type EloResult } from "@/lib/elo";
 import LikeButton from "@/components/LikeButton";
@@ -138,7 +139,10 @@ export default function PlayDbPage() {
   const { user, isLoaded, isSignedIn } = useUser();
   
   // --- Identity (Clerk + Guest) ---
-  const guestId = React.useMemo(() => getOrCreateLocalGuestId(), []);
+  const guestId = React.useMemo(() => {
+    const guest = getGuest();
+    return guest?.id ?? getOrCreateGuestId();
+  }, []);
   const playerId = user?.id ?? guestId;
   const isAuthed = !!user;
 
@@ -153,7 +157,7 @@ export default function PlayDbPage() {
   }
 
   // Unified display name for this round
-  const displayName = isAuthed ? deriveClerkDisplayName(user) : 'Player';
+  const displayName = isAuthed ? deriveClerkDisplayName(user) : (getGuest()?.name ?? 'Player');
 
   React.useEffect(() => {
     if (!isAuthed || !user?.id) return;
