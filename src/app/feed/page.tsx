@@ -304,7 +304,7 @@ export default function FeedPage() {
             return (
               <div key={img.id} className="rounded-2xl bg-black/70 shadow-xl p-4 relative overflow-hidden" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(29,78,216,0.4), rgba(147,51,234,0.3), rgba(249,115,22,0.2))'}}>
                 <div className="relative z-10">
-                <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center relative overflow-hidden rounded-lg">
+                <div className="aspect-[4/3] bg-black/20 flex items-center justify-center relative overflow-hidden rounded-lg">
                   {playable ? (
                     <Link
                       href={`/play-db/${img.id}`}
@@ -314,8 +314,9 @@ export default function FeedPage() {
                         <img
                           src={src}
                           alt={img.title ?? ''}
-                          className="w-full h-full object-cover blur-sm hover:blur-none transition-all duration-200"
+                          className="w-full h-full object-cover blur-[2px] md:hover:blur-none transition-all duration-200"
                           loading="lazy"
+                          style={{ minHeight: '100%', minWidth: '100%' }}
                         />
                       ) : (
                         <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs">
@@ -329,8 +330,9 @@ export default function FeedPage() {
                         <img
                           src={src}
                           alt={img.title ?? ''}
-                          className="w-full h-full object-cover blur-sm opacity-50 cursor-not-allowed"
+                          className="w-full h-full object-cover blur-[2px] opacity-50 cursor-not-allowed"
                           loading="lazy"
+                          style={{ minHeight: '100%', minWidth: '100%' }}
                         />
                       ) : (
                         <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs opacity-50">
