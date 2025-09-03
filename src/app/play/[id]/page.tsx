@@ -2,6 +2,7 @@
 
 import { useRef, useState, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import Timer, { TimerRef } from '../../../components/Timer';
 import { getOrCreateLocalGuestId } from '@/lib/identity';
@@ -146,19 +147,25 @@ export default function PlayPage({ params }: PlayPageProps) {
         <p className="text-sm text-white/70 mb-1">
           Time: {(winTime / 1000).toFixed(2)}s
         </p>
-        <div className="flex gap-2 mt-4">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
           <button
             onClick={resetGame}
-            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
+            className="rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
           >
             Play Again
           </button>
           <button
             onClick={goToNextLevel}
-            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
+            className="rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
           >
             Next Level
           </button>
+          <Link
+            href="/feed"
+            className="text-center rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
+          >
+            Feed
+          </Link>
         </div>
       </div>
     );

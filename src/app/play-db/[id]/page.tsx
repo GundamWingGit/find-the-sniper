@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import supabase from "@/lib/supabase";
 import { useUser } from '@clerk/nextjs';
 import { getOrCreateLocalGuestId, linkGuestToProfile } from '@/lib/identity';
@@ -779,20 +780,26 @@ export default function PlayDbPage() {
           ) : null}
         </div>
 
-        <div className="flex gap-2">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
           <button
-            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition"
+            className="rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
             onClick={resetRound}
           >
             Play Again
           </button>
           <button 
-            className="flex-1 rounded-full bg-white/10 text-white/90 py-2 hover:bg-white/20 hover:text-white transition disabled:opacity-50" 
+            className="rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur disabled:opacity-50" 
             onClick={goToNextImage}
             disabled={nextLoading}
           >
             {nextLoading ? "Finding next…" : "Next Level"}
           </button>
+          <Link
+            href="/feed"
+            className="text-center rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
+          >
+            Feed
+          </Link>
         </div>
 
         {saveError && (

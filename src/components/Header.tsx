@@ -46,7 +46,7 @@ export default function Header() {
               );
             })}
             <div className="ml-2">
-              {isSignedIn ? <UserButton /> : <SignInButton />}
+              {isSignedIn ? <UserButton /> : <SignInButton mode="modal" afterSignInUrl="/welcome" />}
             </div>
           </nav>
 
@@ -102,7 +102,7 @@ export default function Header() {
                 );
               })}
               <div className="px-3 py-2">
-                {isSignedIn ? <UserButton afterSignOutUrl="/" /> : <SignInButton />}
+                {isSignedIn ? <UserButton afterSignOutUrl="/" /> : <SignInButton mode="modal" afterSignInUrl="/welcome" />}
               </div>
             </nav>
           </div>

@@ -40,16 +40,25 @@ export default function LeaderboardPage() {
 
   const fetchFastestScores = async () => {
     const { data, error } = await supabase
-      .from('scores')
-      .select('id, image_id, ms, created_at, player_name, guest_id, image:images(id, public_url, title, location)')
-      .order('ms', { ascending: true })
-      .order('created_at', { ascending: true })
-      .limit(20);
+      .from('leaderboard_fastest_per_image')
+      .select('image_id,time_ms,player_name,guest_id,achieved_at,title,location,public_url')
+      .order('time_ms', { ascending: true });
     if (error) throw error;
-    // Transform the data to match ScoreRow type (image relation returns array, we need single object)
+    
+    // Transform the data to match ScoreRow type expected by the UI
     return (data ?? []).map(item => ({
-      ...item,
-      image: Array.isArray(item.image) ? item.image[0] || null : item.image
+      id: `${item.image_id}-${item.guest_id}`, // Create a unique id for the row
+      image_id: item.image_id,
+      ms: item.time_ms, // Map time_ms to ms for compatibility
+      created_at: item.achieved_at,
+      player_name: item.player_name,
+      guest_id: item.guest_id,
+      image: {
+        id: item.image_id,
+        public_url: item.public_url,
+        title: item.title,
+        location: item.location
+      }
     })) as ScoreRow[];
   };
 
