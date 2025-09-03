@@ -202,13 +202,13 @@ export default function LeaderboardPage() {
       <h1 className="text-3xl md:text-4xl font-semibold text-white mb-6">Leaderboard</h1>
 
       {/* Tab Navigation */}
-      <div className="mb-8">
-        <div className="inline-flex items-center rounded-2xl bg-black/40 border border-white/10 p-1.5 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+      <div className="mb-6">
+        <div className="inline-flex items-center rounded-full bg-white/10 p-1 backdrop-blur">
           {[
-            { key: 'fastest', label: 'Fastest Times', icon: '⚡' },
-            { key: 'mostGames', label: 'Most Games', icon: '🎮' },
-            { key: 'topPlayers', label: 'Top Players', icon: '👑' },
-            ...(SHOW_TOP_IMAGES ? [{ key: 'topImages', label: 'Top Images', icon: '🖼️' }] : []),
+            { key: 'fastest', label: 'Fastest Times' },
+            { key: 'mostGames', label: 'Most Games' },
+            { key: 'topPlayers', label: 'Top Players' },
+            ...(SHOW_TOP_IMAGES ? [{ key: 'topImages', label: 'Top Images' }] : []),
           ].map(t => {
             const active = activeTab === t.key;
             return (
@@ -217,20 +217,13 @@ export default function LeaderboardPage() {
                 type="button"
                 onClick={() => handleTabChange(t.key as TabType)}
                 className={
-                  "relative px-4 md:px-6 py-3 md:py-3.5 text-sm md:text-base font-medium rounded-xl transition-all duration-200 ease-out transform " +
+                  "px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-[0.95rem] rounded-full transition " +
                   (active
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
-                    : "text-white/70 hover:text-white hover:bg-white/10 hover:scale-[1.01]")
+                    ? "bg-white text-black shadow"
+                    : "text-white/80 hover:text-white hover:bg-white/20")
                 }
               >
-                <span className="flex items-center gap-2">
-                  <span className="text-base">{t.icon}</span>
-                  <span className="hidden sm:inline">{t.label}</span>
-                  <span className="sm:hidden">{t.label.split(' ')[0]}</span>
-                </span>
-                {active && (
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 to-purple-500/20 animate-pulse" />
-                )}
+                {t.label}
               </button>
             );
           })}
@@ -255,21 +248,19 @@ export default function LeaderboardPage() {
         <div className="rounded-2xl bg-black/70 border border-white/10 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             {activeTab === 'fastest' && (
-              <table className="min-w-full text-sm">
+              <table className="table-auto w-full text-sm">
                 <thead className="bg-white/5 md:sticky md:top-0">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">Image</th>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">Time</th>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">When</th>
-                    <th className="px-4 py-3 text-left font-semibold text-white/90">Play</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90 min-w-[200px]">Image</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90 min-w-[120px] whitespace-nowrap">Player</th>
+                    <th className="px-4 py-3 text-right font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Time</th>
+                    <th className="px-4 py-3 text-left font-semibold text-white/90 min-w-[140px] whitespace-nowrap">When</th>
+                    <th className="px-4 py-3 text-center font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Play</th>
                   </tr>
                 </thead>
                 <tbody>
                 {rows.map((r, idx) => (
                   <tr key={r.id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
-                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
                     <td className="px-4 py-3">
                       {r.image?.public_url ? (
                         <div className="flex items-center gap-3">
@@ -280,12 +271,12 @@ export default function LeaderboardPage() {
                               className="h-14 w-20 object-cover rounded-md hover:opacity-80 cursor-pointer"
                             />
                           </Link>
-                          <div>
-                            <div className="text-sm font-medium text-white">{label(r.image)}</div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-white whitespace-normal break-words">{label(r.image)}</div>
                             {r.image.location?.trim() && (
-                              <div className="text-xs text-white/60">{r.image.location.trim()}</div>
+                              <div className="text-xs text-white/60 whitespace-normal break-words">{r.image.location.trim()}</div>
                             )}
-                            <Link href={`/leaderboard/${r.image_id}`} className="text-xs text-white/60 hover:text-white">Scores</Link>
+                            <Link href={`/leaderboard/${r.image_id}`} className="text-xs text-white/60 hover:text-white whitespace-nowrap">Scores</Link>
                           </div>
                         </div>
                       ) : (
@@ -296,14 +287,14 @@ export default function LeaderboardPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-white/80">
+                    <td className="px-4 py-3 text-white/80 whitespace-nowrap">
                       {r.player_name || "Anonymous"}
                     </td>
-                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{formatMs(r.ms)}</td>
-                    <td className="px-4 py-3 text-white/60">
+                    <td className="px-4 py-3 text-right text-white/90 tabular-nums font-medium whitespace-nowrap">{formatMs(r.ms)}</td>
+                    <td className="px-4 py-3 text-white/60 whitespace-nowrap">
                       {new Date(r.created_at).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center">
                       {r.image_id ? (
                         <Link
                           href={`/play-db/${r.image_id}`}
@@ -322,24 +313,22 @@ export default function LeaderboardPage() {
           )}
           
           {activeTab === 'mostGames' && (
-            <table className="min-w-full text-sm">
+            <table className="table-auto w-full text-sm">
               <thead className="bg-white/5 md:sticky md:top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Games</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Elo</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90 min-w-[150px]">Player</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Games</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Elo</th>
                 </tr>
               </thead>
               <tbody>
                 {players.map((player, idx) => (
                   <tr key={player.guest_id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
-                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
-                    <td className="px-4 py-3 text-white/80">
+                    <td className="px-4 py-3 text-white/80 whitespace-nowrap">
                       {player.name || "Guest"}
                     </td>
-                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{player.games_played}</td>
-                    <td className="px-4 py-3 text-white/60 tabular-nums">{player.rating}</td>
+                    <td className="px-4 py-3 text-right text-white/90 tabular-nums font-medium whitespace-nowrap">{player.games_played}</td>
+                    <td className="px-4 py-3 text-right text-white/60 tabular-nums whitespace-nowrap">{player.rating}</td>
                   </tr>
                 ))}
               </tbody>
@@ -347,24 +336,22 @@ export default function LeaderboardPage() {
           )}
           
           {activeTab === 'topPlayers' && (
-            <table className="min-w-full text-sm">
+            <table className="table-auto w-full text-sm">
               <thead className="bg-white/5 md:sticky md:top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">#</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Player</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Rating</th>
-                  <th className="px-4 py-3 text-left font-semibold text-white/90">Games</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/90 min-w-[150px]">Player</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Rating</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white/90 min-w-[80px] whitespace-nowrap">Games</th>
                 </tr>
               </thead>
               <tbody>
                 {players.map((player, idx) => (
                   <tr key={player.guest_id} className="border-t border-white/10 even:bg-white/[0.02] hover:bg-white/[0.04] transition">
-                    <td className="px-4 py-3 text-white/90 tabular-nums">{idx + 1}</td>
-                    <td className="px-4 py-3 text-white/80">
+                    <td className="px-4 py-3 text-white/80 whitespace-nowrap">
                       {player.name || "Guest"}
                     </td>
-                    <td className="px-4 py-3 text-white/90 tabular-nums font-medium">{player.rating}</td>
-                    <td className="px-4 py-3 text-white/60 tabular-nums">{player.games_played}</td>
+                    <td className="px-4 py-3 text-right text-white/90 tabular-nums font-medium whitespace-nowrap">{player.rating}</td>
+                    <td className="px-4 py-3 text-right text-white/60 tabular-nums whitespace-nowrap">{player.games_played}</td>
                   </tr>
                 ))}
               </tbody>

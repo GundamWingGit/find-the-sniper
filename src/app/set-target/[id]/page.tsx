@@ -157,33 +157,43 @@ export default function SetTargetPage() {
   }
 
   return (
-    <div className="py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="relative min-h-[80vh] py-8">
+      {/* Gradient background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="mx-auto h-[900px] w-[1200px] max-w-full blur-3xl opacity-70"
+          style={{
+            background: "radial-gradient(60% 60% at 50% 30%, rgba(37,99,235,0.40), rgba(147,51,234,0.30), rgba(249,115,22,0.25) 80%)",
+          }}
+        />
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl md:text-4xl font-semibold text-white">
             Set Target Location
           </h1>
           <Link
             href="/upload"
-            className="text-blue-600 hover:text-blue-700 underline"
+            className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
           >
             ← Back to Upload
           </Link>
         </div>
 
         {state === 'saved' ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <div className="mx-auto max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6 text-center">
             <div className="text-4xl mb-2">✅</div>
-            <h2 className="text-xl font-semibold text-green-600 mb-2">
+            <h2 className="text-xl font-semibold text-green-400 mb-2">
               Target Saved!
             </h2>
-            <p className="text-green-700 mb-4">
+            <p className="text-white/70 mb-4">
               Target ID: {targetId}
             </p>
-            <div className="space-x-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/upload"
-                className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="flex-1 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
               >
                 Upload Another
               </Link>
@@ -193,7 +203,7 @@ export default function SetTargetPage() {
                   setTargetId(null);
                   setState('ready');
                 }}
-                className="inline-block bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                className="flex-1 inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
               >
                 Set Another Target
               </button>
@@ -201,18 +211,18 @@ export default function SetTargetPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-blue-700 text-sm">
+            <div className="rounded-2xl bg-black/40 border border-white/10 shadow-xl p-4">
+              <p className="text-white/80 text-sm">
                 Click on the image to set the target location where players should find the sniper.
               </p>
             </div>
 
-            <div className="relative inline-block">
+            <div className="relative inline-block rounded-2xl overflow-hidden border border-white/10 shadow-xl">
               <img
                 ref={setImageElement}
                 src={imageData?.public_url}
                 alt="Set target location"
-                className="max-w-full h-auto rounded-lg border border-gray-200 cursor-crosshair"
+                className="max-w-full h-auto block cursor-crosshair"
                 onClick={handleImageClick}
               />
               
@@ -232,9 +242,9 @@ export default function SetTargetPage() {
             </div>
 
             {target && (
-              <div className="space-y-4">
+              <div className="rounded-2xl bg-black/40 border border-white/10 shadow-xl p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/90 mb-2">
                     Target Radius: {radius}px (display)
                   </label>
                   <input
@@ -243,18 +253,18 @@ export default function SetTargetPage() {
                     max="120"
                     value={radius}
                     onChange={(e) => setRadius(parseInt(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-white/70"
                   />
                 </div>
 
-                <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                <div className="text-xs text-white/60 bg-black/20 border border-white/10 p-3 rounded-xl">
                   Debug: cx={target.cx}, cy={target.cy}, radius={getNaturalRadius()} (natural px)
                 </div>
 
                 <button
                   onClick={handleSaveTarget}
                   disabled={state === 'saving'}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm hover:shadow backdrop-blur"
                 >
                   {state === 'saving' ? 'Saving Target...' : 'Save Target'}
                 </button>
@@ -262,8 +272,8 @@ export default function SetTargetPage() {
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="rounded-2xl bg-red-500/10 border border-red-400/30 shadow-xl p-4">
+                <p className="text-red-400 text-sm">{error}</p>
               </div>
             )}
           </div>
