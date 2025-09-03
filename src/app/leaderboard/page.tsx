@@ -202,13 +202,13 @@ export default function LeaderboardPage() {
       <h1 className="text-3xl md:text-4xl font-semibold text-white mb-6">Leaderboard</h1>
 
       {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="inline-flex items-center rounded-full bg-white/10 p-1 backdrop-blur">
+      <div className="mb-8">
+        <div className="inline-flex items-center rounded-2xl bg-black/40 border border-white/10 p-1.5 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
           {[
-            { key: 'fastest', label: 'Fastest Times' },
-            { key: 'mostGames', label: 'Most Games' },
-            { key: 'topPlayers', label: 'Top Players' },
-            ...(SHOW_TOP_IMAGES ? [{ key: 'topImages', label: 'Top Images' }] : []),
+            { key: 'fastest', label: 'Fastest Times', icon: '⚡' },
+            { key: 'mostGames', label: 'Most Games', icon: '🎮' },
+            { key: 'topPlayers', label: 'Top Players', icon: '👑' },
+            ...(SHOW_TOP_IMAGES ? [{ key: 'topImages', label: 'Top Images', icon: '🖼️' }] : []),
           ].map(t => {
             const active = activeTab === t.key;
             return (
@@ -217,13 +217,20 @@ export default function LeaderboardPage() {
                 type="button"
                 onClick={() => handleTabChange(t.key as TabType)}
                 className={
-                  "px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-[0.95rem] rounded-full transition " +
+                  "relative px-4 md:px-6 py-3 md:py-3.5 text-sm md:text-base font-medium rounded-xl transition-all duration-200 ease-out transform " +
                   (active
-                    ? "bg-white text-black shadow"
-                    : "text-white/80 hover:text-white hover:bg-white/20")
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
+                    : "text-white/70 hover:text-white hover:bg-white/10 hover:scale-[1.01]")
                 }
               >
-                {t.label}
+                <span className="flex items-center gap-2">
+                  <span className="text-base">{t.icon}</span>
+                  <span className="hidden sm:inline">{t.label}</span>
+                  <span className="sm:hidden">{t.label.split(' ')[0]}</span>
+                </span>
+                {active && (
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 to-purple-500/20 animate-pulse" />
+                )}
               </button>
             );
           })}

@@ -259,25 +259,9 @@ export default function PlayPage({ params }: PlayPageProps) {
 
         {/* Results overlay */}
         {showResult && (
-          <div 
-            className="fixed z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
-            style={{
-              top: '0',
-              left: '0',
-              width: '100vw',
-              height: '100vh',
-              padding: '4vw'
-            }}
-          >
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
             <div 
-              className="w-full rounded-2xl bg-black/70 border border-white/10 shadow-xl"
-              style={{
-                maxWidth: 'min(90vw, 400px)',
-                maxHeight: '90vh',
-                padding: 'clamp(16px, 4vw, 32px)',
-                fontSize: 'clamp(14px, 2.5vw, 18px)',
-                overflow: 'auto'
-              }}
+              className="w-full max-w-md rounded-2xl bg-black/70 border border-white/10 shadow-xl p-6"
               aria-modal="true"
               role="dialog"
             >
