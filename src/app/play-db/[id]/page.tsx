@@ -10,7 +10,6 @@ import { getGuest, getOrCreateGuestId } from '@/lib/guest';
 import { getBaselineForImageP60 } from "@/lib/rating";
 import { applyEloForRound, type EloResult } from "@/lib/elo";
 import LikeButton from "@/components/LikeButton";
-import ViewportOverlay from "@/components/ViewportOverlay";
 
 type ImageRow = {
   id: string;
@@ -956,9 +955,31 @@ export default function PlayDbPage() {
 
         {/* Results overlay */}
         {showResult && (
-          <ViewportOverlay>
-            <ResultPanel />
-          </ViewportOverlay>
+          <div 
+            className="fixed z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            style={{
+              top: '0',
+              left: '0',
+              width: '100vw',
+              height: '100vh',
+              padding: '4vw'
+            }}
+          >
+            <div 
+              className="w-full rounded-2xl bg-black/70 border border-white/10 shadow-xl"
+              style={{
+                maxWidth: 'min(90vw, 400px)',
+                maxHeight: '90vh',
+                padding: 'clamp(16px, 4vw, 32px)',
+                fontSize: 'clamp(14px, 2.5vw, 18px)',
+                overflow: 'auto'
+              }}
+              aria-modal="true"
+              role="dialog"
+            >
+              <ResultPanel />
+            </div>
+          </div>
         )}
       </div>
     </main>
