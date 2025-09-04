@@ -229,37 +229,28 @@ export default function PlayDbPage() {
     try {
       setCompletionBanner(null);
       setNextLoading(true);
-      const res = await fetch("/api/next-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          current_image_id: imageId, 
-          guest_id: guestId 
-        }),
+      const guestIdValue = await getOrCreateGuestId(); // string; maps to scores.guest_id
+
+      // Call RPC to fetch one random unseen image id (uuid as string) or null
+      const { data, error } = await supabase.rpc('get_random_unseen_image', {
+        player_key: guestIdValue,
       });
-      
-      const json = await res.json().catch(() => ({}));
-      
-      if (!res.ok) {
-        throw new Error(json?.details || json?.error || `HTTP ${res.status}`);
+
+      if (error) {
+        console.error('RPC error:', error);
+        router.push('/upload'); // graceful fallback
+        return;
       }
-      
-      const nextId = json.next_image_id;
-      if (nextId) {
-        router.push(`/play-db/${nextId}`);
+
+      if (typeof data === 'string' && data.length > 0) {
+        router.push(`/play-db/${data}`);
       } else {
-        // No unplayed images - show completion message
-        setCompletionBanner({
-          type: "info",
-          text: "You've completed them all! Come back later for more or upload your own!",
-        });
+        // No unseen images remain
+        router.push('/upload');
       }
-    } catch (e: any) {
-      console.warn('next image exception', e);
-      setCompletionBanner({ 
-        type: "error", 
-        text: String(e?.message ?? e) 
-      });
+    } catch (e) {
+      console.error('Next Level failed:', e);
+      router.push('/upload');
     } finally {
       setNextLoading(false);
     }
