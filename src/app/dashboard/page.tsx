@@ -34,6 +34,13 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [pLoading, setPLoading] = useState(true);
 
+  const [snipes, setSnipes] = useState<number | null>(null);
+  const [snipesLoading, setSnipesLoading] = useState(true);
+
+  const [likesCount, setLikesCount] = useState<Record<string, number>>({});
+  const [likedByMe, setLikedByMe] = useState<Record<string, boolean>>({});
+  const [likesLoading, setLikesLoading] = useState(false);
+
   // Level-up toast state
   const [toast, setToast] = useState<{ from: number; to: number; gained: number } | null>(null);
 
@@ -126,6 +133,115 @@ export default function Dashboard() {
     };
   }, [user?.id]);
 
+  // Fetch snipes count (unique solved images)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!user?.id) {
+        setSnipes(null);
+        setSnipesLoading(false);
+        return;
+      }
+      const { count, error } = await supabase
+        .from("xp_awards")
+        .select("*", { count: "exact", head: true })
+        .eq("clerk_user_id", user.id);
+
+      if (!active) return;
+      if (error) {
+        console.warn("Snipes count failed:", error.message);
+        setSnipes(null);
+      } else {
+        setSnipes(count ?? 0);
+      }
+      setSnipesLoading(false);
+    })();
+    return () => { active = false; };
+  }, [user?.id]);
+
+  // Fetch likes for the currently loaded images
+  useEffect(() => {
+    (async () => {
+      if (!images.length) {
+        setLikesCount({});
+        setLikedByMe({});
+        return;
+      }
+      setLikesLoading(true);
+      const imageIds = images.map((i) => i.id);
+
+      // Pull all likes for these images
+      const { data, error } = await supabase
+        .from("image_likes")
+        .select("image_id, guest_id")
+        .in("image_id", imageIds);
+
+      if (error) {
+        console.warn("Load likes failed:", error.message);
+        setLikesLoading(false);
+        return;
+      }
+
+      const counts: Record<string, number> = {};
+      const mine: Record<string, boolean> = {};
+
+      for (const row of data || []) {
+        counts[row.image_id] = (counts[row.image_id] || 0) + 1;
+      }
+
+      // If signed in, mark the ones this user liked (user.id is stored in guest_id for Clerk users)
+      if (user?.id) {
+        for (const row of data || []) {
+          if (row.guest_id === user.id) {
+            mine[row.image_id] = true;
+          }
+        }
+      }
+
+      setLikesCount(counts);
+      setLikedByMe(mine);
+      setLikesLoading(false);
+    })();
+  }, [images, user?.id]);
+
+  // Realtime likes updates
+  useEffect(() => {
+    if (!images.length) return;
+    const imageIds = new Set(images.map((i) => i.id));
+
+    const channel = supabase
+      .channel("likes-dashboard")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "image_likes" },
+        (payload) => {
+          const row = (payload.new || payload.old) as { image_id: string; guest_id: string };
+          if (!row?.image_id || !imageIds.has(row.image_id)) return;
+
+          setLikesCount((c) => {
+            const next = { ...c };
+            if (payload.eventType === "INSERT") next[row.image_id] = (next[row.image_id] || 0) + 1;
+            if (payload.eventType === "DELETE") next[row.image_id] = Math.max(0, (next[row.image_id] || 0) - 1);
+            return next;
+          });
+
+          if (user?.id && row.guest_id === user.id) {
+            setLikedByMe((m) => {
+              const next = { ...m };
+              if (payload.eventType === "INSERT") next[row.image_id] = true;
+              if (payload.eventType === "DELETE") next[row.image_id] = false;
+              return next;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [images, user?.id]);
+
   // --- Pointer-driven drag that works when starting on links/images ---
   const DRAG_THRESHOLD = 10;
   const CLICK_SUPPRESS_MS = 150;
@@ -193,6 +309,46 @@ export default function Dashboard() {
     if (img) goToPlay(img);
   }
 
+  async function toggleLike(imageId: string) {
+    if (!user?.id) {
+      console.log("Sign in to like images");
+      return;
+    }
+
+    const meLiked = !!likedByMe[imageId];
+
+    // optimistic
+    setLikedByMe((m) => ({ ...m, [imageId]: !meLiked }));
+    setLikesCount((c) => ({ ...c, [imageId]: Math.max(0, (c[imageId] || 0) + (meLiked ? -1 : 1)) }));
+
+    if (meLiked) {
+      // unlike: delete my row
+      const { error } = await supabase
+        .from("image_likes")
+        .delete()
+        .match({ image_id: imageId, guest_id: user.id });
+
+      if (error) {
+        // rollback
+        setLikedByMe((m) => ({ ...m, [imageId]: true }));
+        setLikesCount((c) => ({ ...c, [imageId]: (c[imageId] || 0) + 1 }));
+        console.error("Unlike failed:", error.message);
+      }
+    } else {
+      // like: insert row (idempotent if you have a unique index on (guest_id, image_id))
+      const { error } = await supabase
+        .from("image_likes")
+        .insert({ image_id: imageId, guest_id: user.id });
+
+      if (error) {
+        // rollback
+        setLikedByMe((m) => ({ ...m, [imageId]: false }));
+        setLikesCount((c) => ({ ...c, [imageId]: Math.max(0, (c[imageId] || 0) - 1) }));
+        console.error("Like failed:", error.message);
+      }
+    }
+  }
+
   return (
     <main className="mx-auto max-w-screen-md px-4 py-6">
       <header className="mb-5 flex items-center justify-between gap-4">
@@ -210,6 +366,7 @@ export default function Dashboard() {
             name={profile.display_name ?? user?.fullName ?? "Player"}
             avatarUrl={profile.avatar_url ?? user?.imageUrl ?? undefined}
             size={72}
+            snipes={snipes ?? undefined}
           />
         ) : !pLoading ? (
           <div className="text-xs text-gray-400">Sign in to track your level</div>
@@ -272,7 +429,32 @@ export default function Dashboard() {
                     draggable={false}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3 text-white drop-shadow">
+                  
+                  {/* Likes pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault(); // don't navigate when tapping the heart
+                      e.stopPropagation();
+                      toggleLike(img.id);
+                    }}
+                    className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/60 hover:bg-black/70 px-2.5 py-1 text-xs text-white backdrop-blur-sm"
+                    title={likedByMe[img.id] ? "Unlike" : "Like"}
+                  >
+                    {/* Heart icon */}
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4"
+                      fill={likedByMe[img.id] ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 21s-6.716-4.571-9.333-7.187C.05 11.197.202 7.86 2.343 5.719A4.5 4.5 0 0 1 8.1 5.9L12 9.8l3.9-3.9a4.5 4.5 0 0 1 5.757-.18c2.141 2.141 2.293 5.478-.324 8.094C18.716 16.429 12 21 12 21z" />
+                    </svg>
+                    <span>{likesCount[img.id] ?? 0}</span>
+                  </button>
+
+                  <div className="absolute bottom-3 right-3 text-white drop-shadow">
                     <div className="text-sm font-medium truncate">
                       {img.title || "Untitled"}
                     </div>

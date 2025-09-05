@@ -9,9 +9,10 @@ type Props = {
   name?: string | null;
   avatarUrl?: string | null;
   size?: number; // px
+  snipes?: number; // NEW
 };
 
-export default function LevelChip({ xp, name, avatarUrl, size = 72 }: Props) {
+export default function LevelChip({ xp, name, avatarUrl, size = 72, snipes }: Props) {
   const { level, currentLevelXp, nextLevelXp, progress } = useMemo(
     () => levelProgress(Number(xp || 0)),
     [xp]
@@ -85,7 +86,13 @@ export default function LevelChip({ xp, name, avatarUrl, size = 72 }: Props) {
       <div className="min-w-0">
         <div className="text-sm font-medium truncate">{name ?? "Player"}</div>
         <div className="text-xs text-white/60">
-          {cur} / {need} XP
+          {typeof snipes === "number" ? (
+            <>snipes: {snipes}</>
+          ) : (
+            <>
+              {cur} / {need} XP
+            </>
+          )}
         </div>
         <div className="mt-1 h-1.5 w-40 max-w-full rounded-full bg-white/10">
           <div

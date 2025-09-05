@@ -806,10 +806,10 @@ export default function PlayDbPage() {
             {nextLoading ? "Finding next…" : "Next Level"}
           </button>
           <Link
-            href="/feed"
+            href="/dashboard"
             className="text-center rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
           >
-            Feed
+            Dashboard
           </Link>
         </div>
 

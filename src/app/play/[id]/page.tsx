@@ -134,10 +134,10 @@ export default function PlayPage({ params }: PlayPageProps) {
             {completionMessage}
           </p>
           <button
-            onClick={() => router.push('/feed')}
+            onClick={() => router.push('/dashboard')}
             className="w-full inline-flex items-center justify-center rounded-full px-4 py-3 text-base font-semibold bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition shadow-sm hover:shadow backdrop-blur"
           >
-            Browse Feed
+            Dashboard
           </button>
         </div>
       );
@@ -166,10 +166,10 @@ export default function PlayPage({ params }: PlayPageProps) {
             Next Level
           </button>
           <Link
-            href="/feed"
+            href="/dashboard"
             className="text-center rounded-full bg-white/10 text-white/90 py-2 px-4 hover:bg-white/20 hover:text-white transition backdrop-blur"
           >
-            Feed
+            Dashboard
           </Link>
         </div>
       </div>
