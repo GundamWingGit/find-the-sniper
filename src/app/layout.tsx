@@ -34,7 +34,10 @@ export default function RootLayout({
           <meta name="theme-color" content="#000000" />
         </head>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen text-white antialiased`}
+          style={{
+            background: `linear-gradient(180deg, rgba(255,115,80,0.05) 0%, rgba(255,174,66,0.04) 35%, rgba(255,209,102,0.03) 60%, rgba(0,0,0,1) 100%), #000`
+          }}
         >
           <MergeGuestOnSignIn />
           <Header />

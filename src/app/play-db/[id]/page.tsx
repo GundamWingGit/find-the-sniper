@@ -11,6 +11,7 @@ import { getBaselineForImageP60 } from "@/lib/rating";
 import { applyEloForRound, type EloResult } from "@/lib/elo";
 import { awardXpForScore } from "@/lib/xp";
 import LikeButton from "@/components/LikeButton";
+import DashboardFab from "@/components/DashboardFab";
 
 type ImageRow = {
   id: string;
@@ -973,6 +974,7 @@ export default function PlayDbPage() {
         )}
       </div>
     </main>
+    <DashboardFab href="/dashboard" label="Dashboard" />
     </div>
   );
 }

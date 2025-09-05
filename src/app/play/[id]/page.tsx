@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Timer, { TimerRef } from '../../../components/Timer';
 import { getOrCreateLocalGuestId } from '@/lib/identity';
 import { getGuest, getOrCreateGuestId } from '@/lib/guest';
+import DashboardFab from '@/components/DashboardFab';
 
 interface PlayPageProps {
   params: Promise<{ id: string }>;
@@ -271,6 +272,7 @@ export default function PlayPage({ params }: PlayPageProps) {
         )}
       </div>
     </main>
+    <DashboardFab href="/dashboard" label="Dashboard" />
     </div>
   );
 }

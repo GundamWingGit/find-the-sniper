@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabase';
 import { ScoreRow } from '@/lib/types';
+import DashboardFab from '@/components/DashboardFab';
 
 const SHOW_TOP_IMAGES = false;
 
@@ -187,6 +188,7 @@ export default function LeaderboardPage() {
   };
 
   return (
+    <>
     <div className="relative min-h-[80vh] py-8">
       {/* gradient layer behind leaderboard content */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -416,5 +418,7 @@ export default function LeaderboardPage() {
         </div>
       )}
     </div>
+    <DashboardFab href="/dashboard" label="Dashboard" />
+    </>
   );
 }

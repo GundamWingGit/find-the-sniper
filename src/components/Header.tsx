@@ -19,10 +19,15 @@ export default function Header() {
   const [guestDropdownOpen, setGuestDropdownOpen] = useState(false);
   const [hasGuest, setHasGuest] = useState(false);
   const [guestName, setGuestName] = useState<string | null>(null);
+  const [clientMounted, setClientMounted] = useState(false);
   const pathname = usePathname();
   
   const { mounted, isGuest } = useGuestSession();
   const { openSignIn, openSignUp, signOut } = useClerk();
+
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
 
   useEffect(() => {
     const guest = getGuest();
@@ -50,14 +55,7 @@ export default function Header() {
     // State will be updated automatically by the storage event listener
   };
 
-  const rawLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/play-db', label: 'Play' },
-    ...(canViewFeed ? [{ href: '/feed', label: 'Feed' }] : []),
-    { href: '/upload', label: 'Upload' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-  ];
+  const rawLinks: { href: string; label: string }[] = [];
 
   // De-duplicate by href to prevent duplicate React keys
   const allLinks = useMemo(() => {
@@ -71,75 +69,66 @@ export default function Header() {
     return unique;
   }, [rawLinks]);
 
-  // For signed-in users, always include feed
-  const signedInLinks = useMemo(() => {
-    const seen = new Set<string>();
-    const unique: typeof rawLinks = [];
-    const withFeed = [
-      { href: '/', label: 'Home' },
-      { href: '/dashboard', label: 'Dashboard' },
-      { href: '/play-db', label: 'Play' },
-      { href: '/feed', label: 'Feed' },
-      { href: '/upload', label: 'Upload' },
-      { href: '/leaderboard', label: 'Leaderboard' },
-    ];
-    for (const link of withFeed) {
-      if (seen.has(link.href)) continue;
-      seen.add(link.href);
-      unique.push(link);
-    }
-    return unique;
-  }, []);
+  // For signed-in users, no nav links
+  const signedInLinks: { href: string; label: string }[] = [];
 
   return (
     <header className="sticky top-0 z-40">
       <div className="mx-auto max-w-6xl px-4">
         <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 backdrop-blur px-3 md:px-4 py-2 shadow-[0_0_40px_rgba(99,102,241,0.20)]">
-          <div className="font-semibold tracking-tight text-white">Find the Sniper</div>
+          <div className="font-semibold tracking-tight text-white">
+            <Link href="/dashboard" className="hover:text-white/90 transition">
+              Find the Sniper
+            </Link>
+          </div>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            <SignedIn>
-              {signedInLinks.map((link) => {
-                const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={
-                      "px-3 py-1.5 rounded-full text-sm transition " +
-                      (active
-                        ? "bg-white text-black shadow"
-                        : "text-white/80 hover:text-white hover:bg-white/10")
-                    }
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </SignedIn>
-            
-            <SignedOut>
-              {allLinks.map((link) => {
-                const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={
-                      "px-3 py-1.5 rounded-full text-sm transition " +
-                      (active
-                        ? "bg-white text-black shadow"
-                        : "text-white/80 hover:text-white hover:bg-white/10")
-                    }
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </SignedOut>
+          {/* Desktop nav - only render if there are links */}
+          {(signedInLinks.length > 0 || allLinks.length > 0) && (
+            <nav className="hidden md:flex items-center gap-1">
+              <SignedIn>
+                {signedInLinks.map((link) => {
+                  const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={
+                        "px-3 py-1.5 rounded-full text-sm transition " +
+                        (active
+                          ? "bg-white text-black shadow"
+                          : "text-white/80 hover:text-white hover:bg-white/10")
+                      }
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </SignedIn>
+              
+              <SignedOut>
+                {allLinks.map((link) => {
+                  const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={
+                        "px-3 py-1.5 rounded-full text-sm transition " +
+                        (active
+                          ? "bg-white text-black shadow"
+                          : "text-white/80 hover:text-white hover:bg-white/10")
+                      }
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </SignedOut>
+            </nav>
+          )}
 
-            <div className="ml-2">
+          {/* Auth section */}
+          <div className="flex items-center gap-2">
               <SignedIn>
                 <div className="flex items-center gap-2">
                   <UserButton />
@@ -155,7 +144,7 @@ export default function Header() {
 
               <SignedOut>
                 <div className="flex items-center gap-2">
-                  {hasGuest && guestName && (
+                  {clientMounted && hasGuest && guestName && (
                     <div className="relative">
                       <button
                         type="button"
@@ -185,7 +174,7 @@ export default function Header() {
                     </div>
                   )}
                   
-                  {mounted && isGuest ? (
+                  {clientMounted && mounted && isGuest ? (
                     <button 
                       className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
                       onClick={() => openSignUp({ 
@@ -196,7 +185,7 @@ export default function Header() {
                     >
                       Create account
                     </button>
-                  ) : (
+                  ) : clientMounted ? (
                     <button 
                       className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition backdrop-blur"
                       onClick={() => openSignIn({ 
@@ -207,9 +196,9 @@ export default function Header() {
                     >
                       Sign in
                     </button>
-                  )}
+                  ) : null}
                   
-                  {!hasGuest && (
+                  {clientMounted && !hasGuest && (
                     <button
                       type="button"
                       onClick={() => setGuestOpen(true)}
@@ -220,28 +209,29 @@ export default function Header() {
                   )}
                 </div>
               </SignedOut>
-            </div>
-          </nav>
+          </div>
 
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            onClick={() => setOpen(v => !v)}
-            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 hover:bg-white/10 text-white"
-            aria-label="Open menu"
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-          >
-            {/* simple hamburger icon */}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          {/* Mobile hamburger - only show if there are links */}
+          {(signedInLinks.length > 0 || allLinks.length > 0) && (
+            <button
+              type="button"
+              onClick={() => setOpen(v => !v)}
+              className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 hover:bg-white/10 text-white"
+              aria-label="Open menu"
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+            >
+              {/* simple hamburger icon */}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Mobile overlay + panel */}
-      {open && (
+      {/* Mobile overlay + panel - only show if there are links */}
+      {open && (signedInLinks.length > 0 || allLinks.length > 0) && (
         <>
           {/* backdrop */}
           <div
@@ -311,7 +301,7 @@ export default function Header() {
                 </SignedIn>
 
                 <SignedOut>
-                  {hasGuest && guestName && (
+                  {clientMounted && hasGuest && guestName && (
                     <>
                       <div className="w-full rounded-full bg-green-500/20 text-green-300 px-4 py-2 text-sm font-medium border border-green-400/30 text-center">
                         Guest: {guestName}
@@ -329,7 +319,7 @@ export default function Header() {
                     </>
                   )}
                   
-                  {mounted && isGuest ? (
+                  {clientMounted && mounted && isGuest ? (
                     <button
                       onClick={() => {
                         openSignUp({ 
@@ -343,7 +333,7 @@ export default function Header() {
                     >
                       Create account
                     </button>
-                  ) : (
+                  ) : clientMounted ? (
                     <button
                       onClick={() => {
                         openSignIn({ 
@@ -357,9 +347,9 @@ export default function Header() {
                     >
                       Sign in
                     </button>
-                  )}
+                  ) : null}
                   
-                  {!hasGuest && (
+                  {clientMounted && !hasGuest && (
                     <button
                       type="button"
                       onClick={() => {

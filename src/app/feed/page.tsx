@@ -5,6 +5,7 @@ import Link from 'next/link';
 import supabase from '@/lib/supabase';
 import SetTargetButton from '@/components/SetTargetButton';
 import FeedGuard from '@/components/FeedGuard';
+import DashboardFab from '@/components/DashboardFab';
 
 type FeedImage = { 
   id: string; 
@@ -380,6 +381,7 @@ export default function FeedPage() {
         </div>
       </div>
     </div>
+    <DashboardFab label="Dashboard" href="/dashboard" />
     </FeedGuard>
   );
 }

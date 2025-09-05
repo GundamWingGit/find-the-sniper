@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from 'react';
 import { supabase } from '@/lib/supabase';
+import DashboardFab from '@/components/DashboardFab';
 
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -135,6 +136,7 @@ export default function UploadPage() {
   };
 
   return (
+    <>
     <div className="relative min-h-[80vh] py-8">
       {/* gradient layer behind upload form */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -330,5 +332,7 @@ export default function UploadPage() {
         </div>
       </div>
     </div>
+    <DashboardFab href="/dashboard" label="Dashboard" />
+    </>
   );
 }
