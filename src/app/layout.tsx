@@ -27,9 +27,14 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className="dark">
+        <head>
+          {/* Force dark color scheme so Chrome/iOS don't try to flip colors */}
+          <meta name="color-scheme" content="dark" />
+          <meta name="theme-color" content="#000000" />
+        </head>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}
         >
           <MergeGuestOnSignIn />
           <Header />

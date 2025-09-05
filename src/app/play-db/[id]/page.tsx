@@ -9,6 +9,7 @@ import { getOrCreateLocalGuestId, linkGuestToProfile } from '@/lib/identity';
 import { getGuest, getOrCreateGuestId } from '@/lib/guest';
 import { getBaselineForImageP60 } from "@/lib/rating";
 import { applyEloForRound, type EloResult } from "@/lib/elo";
+import { awardXpForScore } from "@/lib/xp";
 import LikeButton from "@/components/LikeButton";
 
 type ImageRow = {
@@ -425,7 +426,7 @@ export default function PlayDbPage() {
       });
     }
 
-    await supabase.from('scores').insert([{
+    const { data: scoreData, error: scoreError } = await supabase.from('scores').insert([{
       image_id: imageId,
       guest_id: playerId,
       player_name: displayName,
@@ -439,7 +440,21 @@ export default function PlayDbPage() {
       elo_image_before: elo?.imageBefore ?? null,
       elo_player_after: elo?.playerAfter ?? null,
       elo_image_after: elo?.imageAfter ?? null,
-    }]).select('id');
+    }]).select('id').single();
+
+    // Award XP after successful score insertion (only for authenticated users)
+    if (scoreData?.id && !scoreError && isAuthed && user?.id) {
+      const result = await awardXpForScore(scoreData.id, user.id);
+      if (result) {
+        if ("skipped" in result && result.skipped) {
+          console.log("XP skipped (already awarded for this image). total=%d level=%d",
+            result.xp, result.level);
+        } else {
+          console.log("XP +%d, total=%d, level=%d",
+            result.awarded, result.xp, result.level);
+        }
+      }
+    }
 
     const savedName = displayName;
     await supabase

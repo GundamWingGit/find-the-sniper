@@ -52,6 +52,7 @@ export default function Header() {
 
   const rawLinks = [
     { href: '/', label: 'Home' },
+    { href: '/dashboard', label: 'Dashboard' },
     { href: '/play-db', label: 'Play' },
     ...(canViewFeed ? [{ href: '/feed', label: 'Feed' }] : []),
     { href: '/upload', label: 'Upload' },
@@ -76,6 +77,7 @@ export default function Header() {
     const unique: typeof rawLinks = [];
     const withFeed = [
       { href: '/', label: 'Home' },
+      { href: '/dashboard', label: 'Dashboard' },
       { href: '/play-db', label: 'Play' },
       { href: '/feed', label: 'Feed' },
       { href: '/upload', label: 'Upload' },
