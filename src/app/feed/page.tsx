@@ -421,7 +421,7 @@ export default function FeedPage() {
           />
         </div>
 
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-white text-3xl md:text-4xl font-semibold mb-6">Community Feed</h1>
 
         {/* Search bar */}
@@ -521,15 +521,21 @@ export default function FeedPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {(displayedImages || []).map((img: any) => {
             const playable = withTarget.has(img.id);
             const likes = likeMap.get(img.id) ?? 0;
             const src = resolveImageSrc(img);
+            
+            // Debug log for mobile
+            if (typeof window !== 'undefined' && window.innerWidth < 768) {
+              console.log('Mobile feed item:', { id: img.id, src, playable, title: img.title });
+            }
+            
             return (
               <div key={img.id} className="rounded-2xl bg-black/70 shadow-xl p-4 relative overflow-hidden" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(29,78,216,0.4), rgba(147,51,234,0.3), rgba(249,115,22,0.2))'}}>
                 <div className="relative z-10">
-                <div className="aspect-[4/3] bg-black/20 flex items-center justify-center relative overflow-hidden rounded-lg">
+                <div className="aspect-[4/3] bg-black/20 flex items-center justify-center relative overflow-hidden rounded-lg" style={{ minHeight: '200px' }}>
                   {playable ? (
                     <Link
                       href={`/play-db/${img.id}`}
@@ -541,7 +547,16 @@ export default function FeedPage() {
                           alt={img.title ?? ''}
                           className="w-full h-full object-cover select-none"
                           loading="lazy"
-                          style={{ objectPosition: "left center", transform: "scale(1.35)" }}
+                          style={{ 
+                            objectPosition: "left center", 
+                            transform: "scale(1.35)",
+                            minHeight: '100%',
+                            minWidth: '100%'
+                          }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
                         />
                       ) : (
                         <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs">
@@ -557,7 +572,16 @@ export default function FeedPage() {
                           alt={img.title ?? ''}
                           className="w-full h-full object-cover select-none opacity-50 cursor-not-allowed"
                           loading="lazy"
-                          style={{ objectPosition: "left center", transform: "scale(1.35)" }}
+                          style={{ 
+                            objectPosition: "left center", 
+                            transform: "scale(1.35)",
+                            minHeight: '100%',
+                            minWidth: '100%'
+                          }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
                         />
                       ) : (
                         <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/50 text-xs opacity-50">
